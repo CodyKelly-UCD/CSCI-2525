@@ -320,3 +320,9 @@ ASALocalRun/
 
 # MSBuild Binary and Structured Log
 *.binlog
+
+# compressed files
+*.zip
+
+*.out
+*.o
