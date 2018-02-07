@@ -1,8 +1,8 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/06/18 18:36:41
-pa2.as							     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/07/18 13:01:58
+troubleshoot-1.as					     Page 1 - 1
 
 
-				TITLE pa2.asm
+				TITLE troubleshoot-1.asm
 
 				INCLUDE Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -23,55 +23,47 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/06/18 18:36:41
 			      C .LIST
 			      C 
 
+ = 00000006			rows = 2 * 3
+ = "Press a Key to continue	PressKey equ <"Press a Key to continue.  ", 0>
+   .  ", 0
+
  00000000			.data
-				; Register-clearing macros
- = mov eax, 0			clearEAX TEXTEQU <mov eax, 0>
- = mov edx, 0			clearEDX TEXTEQU <mov edx, 0>
-
-				; Numbers
- 00000000 FFFFFFFF		negativeBajillion DWORD 0FFFFFFFFh
- 00000004 7FFFFFFF		positiveBajillion DWORD 7FFFFFFFh
- 00000008 00000001		one DWORD 1h
-
-				; Symbol
- = 00015180			SECONDS_IN_DAY = 24*60*60
+ 00000000 AE32			aVar word 0ae32h
+ 00000002 000F			bVar word 1111b
+ 00000004 0020			cVar word 32d
+ 00000006 74 68 69 73 20	astr byte "this is a string"
+	   69 73 20 61 20
+	   73 74 72 69 6E
+	   67
+ 00000016 0000 0020 0032	anArr word ? , 32, 32h
+ 0000001C 74 68 69 73 61	list byte "thisah", 0
+	   68 00
  00000000			.data?
 
  00000000			.code
  00000000			main PROC
-
-				; Part 1
-				; Calculating a product
- 00000000  B8 00000000		clearEAX
- 00000005  66| B8 13B0		mov ax, 2*3*4*5*6*7
-
-				; Part 2.1
-				; Overflowing EDX
- 00000009  BA 00000000		clearEDX
- 0000000E  8B 15 00000004 R	mov edx, positiveBajillion
- 00000014  03 15 00000008 R	add edx, one
-
-				; Part 2.2
-				; Using the carry flag
- 0000001A  BA 00000000		clearEDX
- 0000001F  8B 15 00000000 R	mov edx, negativeBajillion
- 00000025  03 15 00000008 R	add edx, one
-
-				; Part 3
-				; Storing the number of seconds in a day
-				; in the EDX register
- 0000002B  BA 00000000		clearEDX
- 00000030  BA 00015180		mov edx, SECONDS_IN_DAY
-
- 00000035  E8 00000000 E	call DumpRegs
+ 00000000  B8 00000000		mov eax, 0
+ 00000005  8B D8		mov ebx, eax
+ 00000007  66| A1		mov ax, aVar; put a in eax
+	   00000000 R
+ 0000000D  66| 8B 1D		mov bx, bVAR; put b in ebx
+	   00000002 R
+ 00000014  66| A3		mov avar, ax; a = b
+	   00000000 R
+ 0000001A  66| 01 1D		add cVAR, bx; c = c + b
+	   00000004 R
+ 00000021  66| 89 1D		mov cVar, bx; c = ebx
+	   00000004 R
+ 00000028  66| 8B 1D		mov bx, [anArr + 1]
+	   00000017 R
 
 				exit
- 0000003A  6A 00	   *	    push   +000000000h
- 0000003C  E8 00000000 E   *	    call   ExitProcess
- 00000041			main ENDP
+ 0000002F  6A 00	   *	    push   +000000000h
+ 00000031  E8 00000000 E   *	    call   ExitProcess
+ 00000036			main ENDP
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/06/18 18:36:41
-pa2.as							     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/07/18 13:01:58
+troubleshoot-1.as					     Symbols 2 - 1
 
 
 
@@ -165,8 +157,8 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _BSS . . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'BSS'  
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000000C Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000041 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000023 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000036 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -273,7 +265,7 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000041 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000036 Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -397,12 +389,12 @@ NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h
 OPEN_ALWAYS  . . . . . . . . . .	Number	 00000004h   
 OPEN_EXISTING  . . . . . . . . .	Number	 00000003h   
 PeekConsoleInput . . . . . . . .	Text   	 PeekConsoleInputA
+PressKey . . . . . . . . . . . .	Text   	 "Press a Key to continue.  ", 0
 RIGHT_ALT_PRESSED  . . . . . . .	Number	 00000001h   
 RIGHT_CTRL_PRESSED . . . . . . .	Number	 00000004h   
 ReadConsoleInput . . . . . . . .	Text   	 ReadConsoleInputA
 ReadConsole  . . . . . . . . . .	Text   	 ReadConsoleA
 SCROLLLOCK_ON  . . . . . . . . .	Number	 00000040h   
-SECONDS_IN_DAY . . . . . . . . .	Number	 00015180h   
 SHIFT_MASK . . . . . . . . . . .	Number	 00000010h   
 SHIFT_PRESSED  . . . . . . . . .	Number	 00000010h   
 STD_ERROR_HANDLE . . . . . . . .	Number	 -0000000Ch   
@@ -493,11 +485,14 @@ VK_UP  . . . . . . . . . . . . .	Number	 00000026h
 WINDOW_BUFFER_SIZE_EVENT . . . .	Number	 00000004h   
 WriteConsoleOutputCharacter  . .	Text   	 WriteConsoleOutputCharacterA
 WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
+aVar . . . . . . . . . . . . . .	Word	 00000000 _DATA	
+anArr  . . . . . . . . . . . . .	Word	 00000016 _DATA	
+astr . . . . . . . . . . . . . .	Byte	 00000006 _DATA	
+bVar . . . . . . . . . . . . . .	Word	 00000002 _DATA	
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-clearEAX . . . . . . . . . . . .	Text   	 mov eax, 0
-clearEDX . . . . . . . . . . . .	Text   	 mov edx, 0
+cVar . . . . . . . . . . . . . .	Word	 00000004 _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
@@ -508,11 +503,10 @@ lightGray  . . . . . . . . . . .	Number	 00000007h
 lightGreen . . . . . . . . . . .	Number	 0000000Ah   
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
+list . . . . . . . . . . . . . .	Byte	 0000001C _DATA	
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-negativeBajillion  . . . . . . .	DWord	 00000000 _DATA	
-one  . . . . . . . . . . . . . .	DWord	 00000008 _DATA	
-positiveBajillion  . . . . . . .	DWord	 00000004 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+rows . . . . . . . . . . . . . .	Number	 00000006h   
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
