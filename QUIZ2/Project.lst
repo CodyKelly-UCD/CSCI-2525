@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/07/18 13:01:58
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/07/18 13:20:48
 troubleshoot-1.as					     Page 1 - 1
 
 
@@ -30,13 +30,13 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/07/18 13:01:58
  00000000			.data
  00000000 AE32			aVar word 0ae32h
  00000002 000F			bVar word 1111b
- 00000004 0020			cVar word 32d
- 00000006 74 68 69 73 20	astr byte "this is a string"
+ 00000004 00000020		cVar dword 32d
+ 00000008 74 68 69 73 20	astr byte "this is a string"
 	   69 73 20 61 20
 	   73 74 72 69 6E
 	   67
- 00000016 0000 0020 0032	anArr word ? , 32, 32h
- 0000001C 74 68 69 73 61	list byte "thisah", 0
+ 00000018 0000 0020 0032	anArr word ? , 32, 32h
+ 0000001E  74 68 69 73 61	byte "th","is","ah", 0
 	   68 00
  00000000			.data?
 
@@ -50,19 +50,17 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/07/18 13:01:58
 	   00000002 R
  00000014  66| A3		mov avar, ax; a = b
 	   00000000 R
- 0000001A  66| 01 1D		add cVAR, bx; c = c + b
-	   00000004 R
- 00000021  66| 89 1D		mov cVar, bx; c = ebx
-	   00000004 R
- 00000028  66| 8B 1D		mov bx, [anArr + 1]
-	   00000017 R
+ 0000001A  01 1D 00000004 R	add cVAR, ebx; c = c + b
+ 00000020  89 1D 00000004 R	mov cVar, ebx; c = ebx
+ 00000026  66| 8B 1D		mov bx, [anArr + 1]
+	   00000019 R
 
 				exit
- 0000002F  6A 00	   *	    push   +000000000h
- 00000031  E8 00000000 E   *	    call   ExitProcess
- 00000036			main ENDP
+ 0000002D  6A 00	   *	    push   +000000000h
+ 0000002F  E8 00000000 E   *	    call   ExitProcess
+ 00000034			main ENDP
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/07/18 13:01:58
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/07/18 13:20:48
 troubleshoot-1.as					     Symbols 2 - 1
 
 
@@ -157,8 +155,8 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _BSS . . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'BSS'  
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000023 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000036 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000025 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000034 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -265,7 +263,7 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000036 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000034 Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -486,13 +484,13 @@ WINDOW_BUFFER_SIZE_EVENT . . . .	Number	 00000004h
 WriteConsoleOutputCharacter  . .	Text   	 WriteConsoleOutputCharacterA
 WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 aVar . . . . . . . . . . . . . .	Word	 00000000 _DATA	
-anArr  . . . . . . . . . . . . .	Word	 00000016 _DATA	
-astr . . . . . . . . . . . . . .	Byte	 00000006 _DATA	
+anArr  . . . . . . . . . . . . .	Word	 00000018 _DATA	
+astr . . . . . . . . . . . . . .	Byte	 00000008 _DATA	
 bVar . . . . . . . . . . . . . .	Word	 00000002 _DATA	
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-cVar . . . . . . . . . . . . . .	Word	 00000004 _DATA	
+cVar . . . . . . . . . . . . . .	DWord	 00000004 _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
@@ -503,7 +501,6 @@ lightGray  . . . . . . . . . . .	Number	 00000007h
 lightGreen . . . . . . . . . . .	Number	 0000000Ah   
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
-list . . . . . . . . . . . . . .	Byte	 0000001C _DATA	
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 red  . . . . . . . . . . . . . .	Number	 00000004h   
 rows . . . . . . . . . . . . . .	Number	 00000006h   

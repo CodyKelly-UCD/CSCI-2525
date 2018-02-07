@@ -8,10 +8,10 @@ PressKey equ <"Press a Key to continue.  ", 0>
 .data
 aVar word 0ae32h
 bVar word 1111b
-cVar word 32d
+cVar dword 32d
 astr byte "this is a string"
 anArr word ? , 32, 32h
-list byte "thisah", 0
+byte "th","is","ah", 0
 .data?
 
 .code
@@ -21,8 +21,8 @@ mov ebx, eax
 mov ax, aVar; put a in eax
 mov bx, bVAR; put b in ebx
 mov avar, ax; a = b
-add cVAR, bx; c = c + b
-mov cVar, bx; c = ebx
+add cVAR, ebx; c = c + b
+mov cVar, ebx; c = ebx
 mov bx, [anArr + 1]
 
 exit
