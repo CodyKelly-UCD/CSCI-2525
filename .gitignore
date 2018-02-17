@@ -326,3 +326,5 @@ ASALocalRun/
 
 *.out
 *.o
+
+.DS_Store
