@@ -17,10 +17,10 @@ main PROC
 
 clearEAX
 clearEBX
-MOV eax, [arrayD]		; Move 32 to EAX
-XCHG eax, [arrayD + 4]	; Exchange 32 and 51
-XCHG eax, [arrayD + 8]	; Exchange 51 and 12
-MOV [arrayD], eax		; Move 12 to first position
+MOV eax, [arrayD]       ; Move 32 to EAX
+XCHG eax, [arrayD + 4]  ; Exchange 32 and 51
+XCHG eax, [arrayD + 8]  ; Exchange 51 and 12
+MOV [arrayD], eax       ; Move 12 to first position
 
 exit
 main ENDP
