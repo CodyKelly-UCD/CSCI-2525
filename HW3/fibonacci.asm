@@ -14,15 +14,15 @@ INCLUDE Irvine32.inc
 clearECX	 TEXTEQU	 <mov ecx, 0>
 clearEAX	 TEXTEQU	 <mov eax, 0>
 fibArray	 BYTE 10 DUP(0)
+sizeFibArray = ($ - fibArray)
 .data?
 
 .code
 main PROC
 clearECX
 clearEAX
-mov [fibArray], 0                   ; Set first element to fib(0)
 mov [fibArray + 1], 1			    ; Set the second element equal to fib(1)
-mov ecx, LENGTHOF fibArray - 2	    ; Set the loop counter to length of fibArray minus 
+mov ecx, sizeFibArray - 2	    	; Set the loop counter to length of fibArray minus 
                                     ; two because we know the values of the first two elements
 mov esi, OFFSET fibArray
 

@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/18/18 17:03:09
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/19/18 13:03:49
 fibonacci.as						     Page 1 - 1
 
 
@@ -37,40 +37,38 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/18/18 17:03:09
  00000000  0000000A [		fibArray	 BYTE 10 DUP(0)
 	    00
 	   ]
+ 0000000A = 0000000A		sizeFibArray = ($ - fibArray)
  00000000			.data?
 
  00000000			.code
  00000000			main PROC
  00000000  B9 00000000		clearECX
  00000005  B8 00000000		clearEAX
-
- 0000000A  C6 05 00000000 R	mov [fibArray], 0                   ; Set first element to fib(0)
-	   00
- 00000011  C6 05 00000001 R	mov [fibArray + 1], 1			    ; Set the second element equal to fib(1)
+ 0000000A  C6 05 00000001 R	mov [fibArray + 1], 1			    ; Set the second element equal to fib(1)
 	   01
- 00000018  B9 00000008		mov ecx, LENGTHOF fibArray - 2	    ; Set the loop counter to length of fibArray minus 
+ 00000011  B9 00000008		mov ecx, sizeFibArray - 2	    	; Set the loop counter to length of fibArray minus 
 				                                    ; two because we know the values of the first two elements
- 0000001D  BE 00000000 R	mov esi, OFFSET fibArray
+ 00000016  BE 00000000 R	mov esi, OFFSET fibArray
 
- 00000022			fibLoop:
- 00000022  8A 06		    mov al, [esi]                   ; al = fib(n - 2)
- 00000024  46			    inc esi
- 00000025  8A 26		    mov ah, [esi]                   ; ah = fib(n - 1)
- 00000027  46			    inc esi
- 00000028  88 06		    mov [esi], al
- 0000002A  00 26		    add [esi], ah                   ; fibArray(n) = fib(n-2) + fib(n-1)
- 0000002C  4E			    dec esi
- 0000002D  E2 F3		    loop fibLoop
+ 0000001B			fibLoop:
+ 0000001B  8A 06		    mov al, [esi]                   ; al = fib(n - 2)
+ 0000001D  46			    inc esi
+ 0000001E  8A 26		    mov ah, [esi]                   ; ah = fib(n - 1)
+ 00000020  46			    inc esi
+ 00000021  88 06		    mov [esi], al
+ 00000023  00 26		    add [esi], ah                   ; fibArray(n) = fib(n-2) + fib(n-1)
+ 00000025  4E			    dec esi
+ 00000026  E2 F3		    loop fibLoop
 
- 0000002F  8B 1D 00000003 R	mov ebx, DWORD PTR fibArray + 3     ; set ebx equal to fib(3) through fib(6)
- 00000035  E8 00000000 E	call DumpRegs
+ 00000028  8B 1D 00000003 R	mov ebx, DWORD PTR fibArray + 3     ; set ebx equal to fib(3) through fib(6)
+ 0000002E  E8 00000000 E	call DumpRegs
 
 				exit
- 0000003A  6A 00	   *	    push   +000000000h
- 0000003C  E8 00000000 E   *	    call   ExitProcess
- 00000041			main ENDP
+ 00000033  6A 00	   *	    push   +000000000h
+ 00000035  E8 00000000 E   *	    call   ExitProcess
+ 0000003A			main ENDP
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/18/18 17:03:09
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/19/18 13:03:49
 fibonacci.as						     Symbols 2 - 1
 
 
@@ -166,7 +164,7 @@ FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _BSS . . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'BSS'  
 _DATA  . . . . . . . . . . . . .	32 Bit	 0000000A Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000041 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000003A Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -273,8 +271,8 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000041 Public STDCALL
-  fibLoop  . . . . . . . . . . .	L Near	 00000022 _TEXT	
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 0000003A Public STDCALL
+  fibLoop  . . . . . . . . . . .	L Near	 0000001B _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -511,6 +509,7 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+sizeFibArray . . . . . . . . . .	Number	 0000000Ah   
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
