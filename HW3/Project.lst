@@ -1,12 +1,15 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/17/18 21:29:39
-reorder.as						     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/17/18 16:54:47
+fibonacci.as						     Page 1 - 1
 
 
-				TITLE reorder.asm
-				; Rearranges the values of an array into a different order
-				; Uses only: 
-				; MOV and XCHG
-				; Direct offset addressing
+				TITLE fibonacci.asm
+				; Completes the following:
+				;   a. fib(n) for n = 2, 3, ..., 10 using an array of the appropriate 
+				;      size and type. Declares a value for fib(0) and fib(1), but all
+				;      remaining elements are calculated by the program.
+				;   b. After the array is filled with required values, the program 
+				;      stores fib(3) through fib(6) in consecutive bytes of the ebx
+				;      register starting from the lowest byte
 
 				INCLUDE Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -28,30 +31,33 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/17/18 21:29:39
 			      C 
 
  00000000			.data
+ = mov ecx, 0			clearECX TEXTEQU <mov ecx, 0>
  = mov eax, 0			clearEAX TEXTEQU <mov eax, 0>
- = mov ebx, 0			clearEBX TEXTEQU <mov ebx, 0>
- 00000000 00000020		arrayD DWORD 32, 51, 12
-	   00000033
-	   0000000C
+ 00000000  0000000A [		fibArray BYTE 10 DUP(0)
+	    00
+	   ]
  00000000			.data?
 
  00000000			.code
  00000000			main PROC
-
- 00000000  B8 00000000		clearEAX
- 00000005  BB 00000000		clearEBX
- 0000000A  A1 00000000 R	MOV eax, [arrayD]
- 0000000F  87 05 00000004 R	XCHG eax, [arrayD + 4]
- 00000015  87 05 00000008 R	XCHG eax, [arrayD + 8]
- 0000001B  A3 00000000 R	MOV [arrayD], eax
+ 00000000  BE 00000000 R	mov esi, OFFSET fibArray
+				MOV [esi], 1			    ; Set the second element in fibArray equal to fib(1)
+fibonacci.asm(21) : error A2070:invalid instruction operands
+ 00000005  B9 00000008		MOV ecx, LENGTHOF fibArray - 2	    ; Set the loop counter to length of fibArray minus 
+				                                    ; two because we know the values of the first two elements
+ 0000000A  F7 D9		NEG ecx
+ 0000000C			fib:
+				    MOV [esi + ecx], 1
+fibonacci.asm(26) : error A2070:invalid instruction operands
+ 0000000C  E2 FE		    LOOP fib
 
 				exit
- 00000020  6A 00	   *	    push   +000000000h
- 00000022  E8 00000000 E   *	    call   ExitProcess
- 00000027			main ENDP
+ 0000000E  6A 00	   *	    push   +000000000h
+ 00000010  E8 00000000 E   *	    call   ExitProcess
+ 00000015			main ENDP
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/17/18 21:29:39
-reorder.as						     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    02/17/18 16:54:47
+fibonacci.as						     Symbols 2 - 1
 
 
 
@@ -145,8 +151,8 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _BSS . . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'BSS'  
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000000C Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000027 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000000A Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000015 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -253,7 +259,8 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000027 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000015 Public STDCALL
+  fib  . . . . . . . . . . . . .	L Near	 0000000C _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -472,14 +479,14 @@ VK_UP  . . . . . . . . . . . . .	Number	 00000026h
 WINDOW_BUFFER_SIZE_EVENT . . . .	Number	 00000004h   
 WriteConsoleOutputCharacter  . .	Text   	 WriteConsoleOutputCharacterA
 WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
-arrayD . . . . . . . . . . . . .	DWord	 00000000 _DATA	
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
 clearEAX . . . . . . . . . . . .	Text   	 mov eax, 0
-clearEBX . . . . . . . . . . . .	Text   	 mov ebx, 0
+clearECX . . . . . . . . . . . .	Text   	 mov ecx, 0
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
+fibArray . . . . . . . . . . . .	Byte	 00000000 _DATA	
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
@@ -495,4 +502,4 @@ wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
 	   0 Warnings
-	   0 Errors
+	   2 Errors
