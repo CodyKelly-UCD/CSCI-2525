@@ -1,4 +1,4 @@
-TITLE: randomstrings.asm
+TITLE: Strings.asm
 
 COMMENT !
 This program receives an unsigned integer N from the user. It then generates N 
