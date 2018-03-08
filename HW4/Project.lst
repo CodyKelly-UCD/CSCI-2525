@@ -1,8 +1,14 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/07/18 13:10:28
-: template.as						     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 12:59:56
+: randomstrings.as					     Page 1 - 1
 
 
-				TITLE: template.asm
+				TITLE: randomstrings.asm
+
+				COMMENT !
+				This program receives an unsigned integer N from the user. It then generates N 
+				number of strings containing a set of random ascii codes. 
+				After each string is generated, it's written to the screen in a random color.
+				!
 
 				INCLUDE Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -32,135 +38,140 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/07/18 13:10:28
  00000000  00000020 [		string BYTE 32 DUP(0)
 	    00
 	   ]
- 00000020 50 6C 65 61 73	prompt BYTE "Please enter an unsigned integer: ",0
+ 00000020 00000000		N DWORD 0
+
+ 00000000			.code
+ 00000000			main PROC
+				; Get input from user
+ 00000000  E8 00000021		CALL EnterInt
+ 00000005  A3 00000020 R	MOV N, eax
+
+				; Generate and display strings
+ 0000000A  8B 0D 00000020 R	MOV ecx, N
+ 00000010  BA 00000000 R	MOV edx, OFFSET string
+ 00000015  E8 00000023		CALL RStr
+ 0000001A  E8 00000000 E	CALL WaitMsg
+				exit
+ 0000001F  6A 00	   *	    push   +000000000h
+ 00000021  E8 00000000 E   *	    call   ExitProcess
+ 00000026			main ENDP
+
+ 00000026			EnterInt PROC
+				; Gets an unsigned integer from the user
+				;
+				; Returns:
+				; EAX: Unsigned integer entered by user
+ 00000024			.data
+ 00000024 50 6C 65 61 73	prompt BYTE "Please enter an unsigned integer (must be 1 or more): ", 0
 	   65 20 65 6E 74
 	   65 72 20 61 6E
 	   20 75 6E 73 69
 	   67 6E 65 64 20
 	   69 6E 74 65 67
-	   65 72 3A 20 00
- 00000000			.data?
+	   65 72 20 28 6D
+	   75 73 74 20 62
+	   65 20 31 20 6F
+	   72 20 6D 6F 72
+	   65 29 3A 20 00
 
- 00000000			.code
- 00000000			main PROC
- 00000000  B8 00000000		clearEAX
- 00000005  BA 00000000		clearEDX
+ 00000026			.code
+ 00000026  52			PUSH edx
+ 00000027  BA 00000024 R	MOV edx, OFFSET prompt
+ 0000002C  E8 00000000 E	CALL WriteString    ; Prompt user for input
+ 00000031  E8 00000000 E	CALL ReadDec        ; Get user's input
+ 00000036  E8 00000000 E	CALL Crlf
+ 0000003B  5A			POP edx
+ 0000003C  C3			RET
+ 0000003D			EnterInt ENDP
 
-				; Get input from user
- 0000000A  BA 00000020 R	MOV edx, OFFSET prompt
-				;CALL EnterInt
-
-				; Get a random color for strings
-
-				; Generate and display a number of random strings
- 0000000F  BA 00000000 R	MOV edx, OFFSET string
- 00000014  8B C8		MOV ecx, eax
-				;CALL RStr
- 00000016  E8 0000003B		CALL clearArray
-
-				exit
- 0000001B  6A 00	   *	    push   +000000000h
- 0000001D  E8 00000000 E   *	    call   ExitProcess
- 00000022			main ENDP
-
- 00000022			EnterInt PROC
-				;-----------------------------------------------------
-				; Gets an unsigned integer from the user
-				; Receives: 
-				; EDX: Offset of prompt string
-				; Returns:
-				; EAX: Unsigned integer entered by user
-				;-----------------------------------------------------
- 00000022  E8 00000000 E	CALL WriteString    ; Prompt user for input
- 00000027  E8 00000000 E	CALL ReadDec        ; Get user's input
- 0000002C  C3			RET
- 0000002D			EnterInt ENDP
-
- 0000002D			RStr PROC
-				;-----------------------------------------------------
-				; Generates a random string
-				;
-				; I'm not receiving the value from EnterInt in this
-				; procedure because I couldn't figure out why I needed
-				; it.
+ 0000003D			RStr PROC
+				; Generates a number of random strings
+				; The strings generated contain only ascii characters
+				; in a specific range (from minAsciiCode to, but not including,
+				; asciiRange + minAsciiCode)
+				; After generation, the strings are written to the
+				; screen.
 				;
 				; Receives: 
+				; ECX: N, where N is the number of strings to generate
 				; EDX: Offset of array to store string in
-				;-----------------------------------------------------
- 0000002D  E8 00000000 E	CALL Randomize
+ 0000005B			.data
+ 0000005B 00			L BYTE 0
+ = 00000041			minAsciiCode = 41h  ; Minimum ascii code generated
+ = 0000001A			asciiRange = 26     ; This sets the upper bound of codes generated
+				                    ; to minAsciiCode + asciiRange - 1
 
-				; Get random string length from 7 to 32
- 00000032  B8 0000001A		MOV eax, 26
- 00000037  E8 00000000 E	CALL RandomRange
- 0000003C  83 C0 07		ADD eax, 7
- 0000003F  8B C8		MOV ecx, eax    ; Store number in ecx
+ 0000003D			.code
+ 0000003D  50			PUSH eax
+ 0000003E  E8 00000000 E	CALL Randomize
+ 00000043			L1:
+ 00000043  51			    PUSH ecx
+ 00000044  52			    PUSH edx
+				    
+				    ; Get random string length from 7 to 32
+ 00000045  B8 0000001A		    MOV eax, 26
+ 0000004A  E8 00000000 E	    CALL RandomRange
+ 0000004F  83 C0 07		    ADD eax, 7
+ 00000052  8B C8		    MOV ecx, eax
 
-				; Fill array with random capital letters
- 00000041			L1:
-				    ; Get ascii code of a random capital letter
- 00000041  B8 0000001A		    MOV eax, 26
- 00000046  E8 00000000 E	    CALL RandomRange
- 0000004B  83 C0 41		    ADD eax, 41h
-				    ; Move it into current array element
- 0000004E  89 02		    MOV [edx], eax
-				    ; Increment index
- 00000050  42			    INC edx
- 00000051  E2 EE		    LOOP L1
+				    ; Fill array with random ascii codes
+ 00000054			    L2:
+				        ; Get random ascii code
+ 00000054  B8 0000001A		        MOV eax, asciiRange
+ 00000059  E8 00000000 E	        CALL RandomRange
+ 0000005E  83 C0 41		        ADD eax, minAsciiCode
+				        
+				        ; Move it into current array element
+ 00000061  89 02		        MOV [edx], eax
+				        
+				        ; Go to next element
+ 00000063  42			        INC edx
+ 00000064  E2 EE		        LOOP L2
 
- 00000053  8B CB		MOV ecx, ebx    ; Restore ecx
- 00000055  C3			RET
- 00000056			RStr ENDP
+ 00000066  5A			    POP edx
+ 00000067  59			    POP ecx
+ 00000068  E8 00000018		    CALL extracredit
+ 0000006D  E8 00000000 E	    CALL Crlf
+ 00000072  E2 CF		    LOOP L1
+ 00000074  E8 00000000 E	CALL Crlf
 
- 00000056			clearArray PROC
-				;-----------------------------------------------------
-				; Sets the contents of a given string to 0
+				; Make text color gray again
+ 00000079  B8 00000007		MOV eax, 7
+ 0000007E  E8 00000000 E	CALL SetTextColor
+ 00000083  58			POP eax
+ 00000084  C3			RET
+ 00000085			RStr ENDP
+
+ 00000085			extracredit PROC
+				; Writes a string in a random color
+				;
 				; Receives: 
-				; EDX: Offset of array
-				; ECX: Length of array
-				;-----------------------------------------------------
- 00000056			L1:
- 00000056  8B F1		    MOV esi, ecx
-				    MOV edx[esi], 0
-template.asm(92) : error A2032:invalid use of register
- 00000058  E2 FC		LOOP L1
- 0000005A  C3			RET
- 0000005B			clearArray ENDP
+				; EDX: Offset of string to write
+ 00000085  50			PUSH eax
+ 00000086  E8 0000000C		CALL GetRandomColor
+ 0000008B  E8 00000000 E	CALL SetTextColor
+ 00000090  E8 00000000 E	CALL WriteString
+ 00000095  58			POP eax
+ 00000096  C3			RET
+ 00000097			extracredit ENDP
 
- 0000005B			createStrings PROC
-				;-----------------------------------------------------
-				; Gets a number of random strings and displays them
-				; on-screen.
-				; Receives: 
-				; ECX: Number of strings to generate
-				; EDX: Offset of array to store string in
-				;-----------------------------------------------------
-
-
-
- 0000005B  C3			RET
- 0000005C			createStrings ENDP
-
- 0000005C			extracredit PROC
-				; Receives: 
-				; 
+ 00000097			GetRandomColor PROC
+				; Generates a random color code
+				;
 				; Returns:
-				; 
-				;-----------------------------------------------------
- 0000005C  C3			RET
- 0000005D			extracredit ENDP
-
- 0000005D			randomColor PROC
-				; Receives: 
-				; 
-				; Returns:
-				; 
-				;-----------------------------------------------------
- 0000005D  C3			RET
- 0000005E			randomColor ENDP
+				; EAX: Color code
+				;
+				; Requires:
+				; Randomize to be called beforehand
+ 00000097  B8 00000000		clearEAX
+ 0000009C  B8 00000010		MOV eax, 16
+ 000000A1  E8 00000000 E	CALL RandomRange
+ 000000A6  C3			RET
+ 000000A7			GetRandomColor ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/07/18 13:10:28
-: template.as						     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 12:59:56
+: randomstrings.as					     Symbols 2 - 1
 
 
 
@@ -253,9 +264,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_BSS . . . . . . . . . . . . . .	32 Bit	 00000000 Para	  Public  'BSS'  
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000043 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000069 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000005C Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000000A7 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -271,7 +281,7 @@ Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-EnterInt . . . . . . . . . . . .	P Near	 00000022 _TEXT	Length= 0000000B Public STDCALL
+EnterInt . . . . . . . . . . . .	P Near	 00000026 _TEXT	Length= 00000017 Public STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToDosDateTime  . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToSystemTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -292,6 +302,7 @@ GetMaxXY . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 GetMseconds  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetNumberOfConsoleInputEvents  .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetProcessHeap . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetRandomColor . . . . . . . . .	P Near	 00000097 _TEXT	Length= 00000010 Public STDCALL
 GetStdHandle . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetSystemTime  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -311,8 +322,9 @@ OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-RStr . . . . . . . . . . . . . .	P Near	 0000002D _TEXT	Length= 00000029 Public STDCALL
-  L1 . . . . . . . . . . . . . .	L Near	 00000041 _TEXT	
+RStr . . . . . . . . . . . . . .	P Near	 0000003D _TEXT	Length= 00000048 Public STDCALL
+  L1 . . . . . . . . . . . . . .	L Near	 00000043 _TEXT	
+  L2 . . . . . . . . . . . . . .	L Near	 00000054 _TEXT	
 Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -365,13 +377,9 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-clearArray . . . . . . . . . . .	P Near	 00000056 _TEXT	Length= 00000010 Public STDCALL
-  L1 . . . . . . . . . . . . . .	L Near	 00000056 _TEXT	
-createStrings  . . . . . . . . .	P Near	 00000066 _TEXT	Length= 00000001 Public STDCALL
-extracredit  . . . . . . . . . .	P Near	 00000067 _TEXT	Length= 00000001 Public STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000022 Public STDCALL
+extracredit  . . . . . . . . . .	P Near	 00000085 _TEXT	Length= 00000012 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000026 Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
-randomColor  . . . . . . . . . .	P Near	 00000068 _TEXT	Length= 00000001 Public STDCALL
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 
@@ -462,6 +470,7 @@ KEY_EVENT  . . . . . . . . . . .	Number	 00000001h
 KEY_MASKS  . . . . . . . . . . .	Number	 0000001Fh   
 LEFT_ALT_PRESSED . . . . . . . .	Number	 00000002h   
 LEFT_CTRL_PRESSED  . . . . . . .	Number	 00000008h   
+L  . . . . . . . . . . . . . . .	Byte	 0000005B _DATA	
 MB_ABORTRETRYIGNORE  . . . . . .	Number	 00000002h   
 MB_APPLMODAL . . . . . . . . . .	Number	 00000000h   
 MB_CANCELTRYCONTINUE . . . . . .	Number	 00000006h   
@@ -491,6 +500,7 @@ MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h
 MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
 NULL . . . . . . . . . . . . . .	Number	 00000000h   
 NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h   
+N  . . . . . . . . . . . . . . .	DWord	 00000020 _DATA	
 OPEN_ALWAYS  . . . . . . . . . .	Number	 00000004h   
 OPEN_EXISTING  . . . . . . . . .	Number	 00000003h   
 PeekConsoleInput . . . . . . . .	Text   	 PeekConsoleInputA
@@ -589,6 +599,7 @@ VK_UP  . . . . . . . . . . . . .	Number	 00000026h
 WINDOW_BUFFER_SIZE_EVENT . . . .	Number	 00000004h   
 WriteConsoleOutputCharacter  . .	Text   	 WriteConsoleOutputCharacterA
 WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
+asciiRange . . . . . . . . . . .	Number	 0000001Ah   
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
@@ -608,7 +619,8 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-prompt . . . . . . . . . . . . .	Byte	 00000020 _DATA	
+minAsciiCode . . . . . . . . . .	Number	 00000041h   
+prompt . . . . . . . . . . . . .	Byte	 00000024 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
 string . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
@@ -616,4 +628,4 @@ wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
 	   0 Warnings
-	   1 Errors
+	   0 Errors
