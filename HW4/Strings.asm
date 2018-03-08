@@ -123,6 +123,7 @@ extracredit ENDP
 
 GetRandomColor PROC
 ; Generates a random color code
+; Excluding black (0)
 ;
 ; Returns:
 ; EAX: Color code
@@ -130,8 +131,9 @@ GetRandomColor PROC
 ; Requires:
 ; Randomize to be called beforehand
 clearEAX
-MOV eax, 16
+MOV eax, 15
 CALL RandomRange
+INC eax     ; Add one to exclude 0 (black)
 RET
 GetRandomColor ENDP
 

@@ -1,8 +1,8 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 13:06:05
-: randomstrings.as					     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 16:56:27
+: Strings.as						     Page 1 - 1
 
 
-				TITLE: randomstrings.asm
+				TITLE: Strings.asm
 
 				COMMENT !
 				This program receives an unsigned integer N from the user. It then generates N 
@@ -96,7 +96,7 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 13:06:05
 				; ECX: N, where N is the number of strings to generate
 				; EDX: Offset of array to store string in
  0000005B			.data
- 0000005B 00			L BYTE 0
+ 0000005B 00			L BYTE 0            ; Length of string generated
  = 00000041			minAsciiCode = 41h  ; Minimum ascii code generated
  = 0000001A			asciiRange = 26     ; This sets the upper bound of codes generated
 				                    ; to minAsciiCode + asciiRange - 1
@@ -166,14 +166,15 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 13:06:05
 				; Requires:
 				; Randomize to be called beforehand
  000000A1  B8 00000000		clearEAX
- 000000A6  B8 00000010		MOV eax, 16
+ 000000A6  B8 0000000F		MOV eax, 15
  000000AB  E8 00000000 E	CALL RandomRange
- 000000B0  C3			RET
- 000000B1			GetRandomColor ENDP
+ 000000B0  40			INC eax
+ 000000B1  C3			RET
+ 000000B2			GetRandomColor ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 13:06:05
-: randomstrings.as					     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 16:56:27
+: Strings.as						     Symbols 2 - 1
 
 
 
@@ -267,7 +268,7 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 0000005C Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000000B1 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000000B2 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -304,7 +305,7 @@ GetMaxXY . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 GetMseconds  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetNumberOfConsoleInputEvents  .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetProcessHeap . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-GetRandomColor . . . . . . . . .	P Near	 000000A1 _TEXT	Length= 00000010 Public STDCALL
+GetRandomColor . . . . . . . . .	P Near	 000000A1 _TEXT	Length= 00000011 Public STDCALL
 GetStdHandle . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetSystemTime  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
