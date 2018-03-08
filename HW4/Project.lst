@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 12:59:56
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 13:06:05
 : randomstrings.as					     Page 1 - 1
 
 
@@ -112,50 +112,52 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 12:59:56
  00000045  B8 0000001A		    MOV eax, 26
  0000004A  E8 00000000 E	    CALL RandomRange
  0000004F  83 C0 07		    ADD eax, 7
- 00000052  8B C8		    MOV ecx, eax
+ 00000052  A2 0000005B R	    MOV L, al
+ 00000057  0F B6 0D		    MOVZX ecx, L
+	   0000005B R
 
 				    ; Fill array with random ascii codes
- 00000054			    L2:
+ 0000005E			    L2:
 				        ; Get random ascii code
- 00000054  B8 0000001A		        MOV eax, asciiRange
- 00000059  E8 00000000 E	        CALL RandomRange
- 0000005E  83 C0 41		        ADD eax, minAsciiCode
+ 0000005E  B8 0000001A		        MOV eax, asciiRange
+ 00000063  E8 00000000 E	        CALL RandomRange
+ 00000068  83 C0 41		        ADD eax, minAsciiCode
 				        
 				        ; Move it into current array element
- 00000061  89 02		        MOV [edx], eax
+ 0000006B  89 02		        MOV [edx], eax
 				        
 				        ; Go to next element
- 00000063  42			        INC edx
- 00000064  E2 EE		        LOOP L2
+ 0000006D  42			        INC edx
+ 0000006E  E2 EE		        LOOP L2
 
- 00000066  5A			    POP edx
- 00000067  59			    POP ecx
- 00000068  E8 00000018		    CALL extracredit
- 0000006D  E8 00000000 E	    CALL Crlf
- 00000072  E2 CF		    LOOP L1
- 00000074  E8 00000000 E	CALL Crlf
+ 00000070  5A			    POP edx
+ 00000071  59			    POP ecx
+ 00000072  E8 00000018		    CALL extracredit
+ 00000077  E8 00000000 E	    CALL Crlf
+ 0000007C  E2 C5		    LOOP L1
+ 0000007E  E8 00000000 E	CALL Crlf
 
 				; Make text color gray again
- 00000079  B8 00000007		MOV eax, 7
- 0000007E  E8 00000000 E	CALL SetTextColor
- 00000083  58			POP eax
- 00000084  C3			RET
- 00000085			RStr ENDP
+ 00000083  B8 00000007		MOV eax, 7
+ 00000088  E8 00000000 E	CALL SetTextColor
+ 0000008D  58			POP eax
+ 0000008E  C3			RET
+ 0000008F			RStr ENDP
 
- 00000085			extracredit PROC
+ 0000008F			extracredit PROC
 				; Writes a string in a random color
 				;
 				; Receives: 
 				; EDX: Offset of string to write
- 00000085  50			PUSH eax
- 00000086  E8 0000000C		CALL GetRandomColor
- 0000008B  E8 00000000 E	CALL SetTextColor
- 00000090  E8 00000000 E	CALL WriteString
- 00000095  58			POP eax
- 00000096  C3			RET
- 00000097			extracredit ENDP
+ 0000008F  50			PUSH eax
+ 00000090  E8 0000000C		CALL GetRandomColor
+ 00000095  E8 00000000 E	CALL SetTextColor
+ 0000009A  E8 00000000 E	CALL WriteString
+ 0000009F  58			POP eax
+ 000000A0  C3			RET
+ 000000A1			extracredit ENDP
 
- 00000097			GetRandomColor PROC
+ 000000A1			GetRandomColor PROC
 				; Generates a random color code
 				;
 				; Returns:
@@ -163,14 +165,14 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 12:59:56
 				;
 				; Requires:
 				; Randomize to be called beforehand
- 00000097  B8 00000000		clearEAX
- 0000009C  B8 00000010		MOV eax, 16
- 000000A1  E8 00000000 E	CALL RandomRange
- 000000A6  C3			RET
- 000000A7			GetRandomColor ENDP
+ 000000A1  B8 00000000		clearEAX
+ 000000A6  B8 00000010		MOV eax, 16
+ 000000AB  E8 00000000 E	CALL RandomRange
+ 000000B0  C3			RET
+ 000000B1			GetRandomColor ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 12:59:56
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 13:06:05
 : randomstrings.as					     Symbols 2 - 1
 
 
@@ -265,7 +267,7 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 0000005C Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000000A7 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000000B1 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -302,7 +304,7 @@ GetMaxXY . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 GetMseconds  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetNumberOfConsoleInputEvents  .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetProcessHeap . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-GetRandomColor . . . . . . . . .	P Near	 00000097 _TEXT	Length= 00000010 Public STDCALL
+GetRandomColor . . . . . . . . .	P Near	 000000A1 _TEXT	Length= 00000010 Public STDCALL
 GetStdHandle . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetSystemTime  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -322,9 +324,9 @@ OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-RStr . . . . . . . . . . . . . .	P Near	 0000003D _TEXT	Length= 00000048 Public STDCALL
+RStr . . . . . . . . . . . . . .	P Near	 0000003D _TEXT	Length= 00000052 Public STDCALL
   L1 . . . . . . . . . . . . . .	L Near	 00000043 _TEXT	
-  L2 . . . . . . . . . . . . . .	L Near	 00000054 _TEXT	
+  L2 . . . . . . . . . . . . . .	L Near	 0000005E _TEXT	
 Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -377,7 +379,7 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-extracredit  . . . . . . . . . .	P Near	 00000085 _TEXT	Length= 00000012 Public STDCALL
+extracredit  . . . . . . . . . .	P Near	 0000008F _TEXT	Length= 00000012 Public STDCALL
 main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000026 Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C

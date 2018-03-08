@@ -61,7 +61,7 @@ RStr PROC
 ; ECX: N, where N is the number of strings to generate
 ; EDX: Offset of array to store string in
 .data
-L BYTE 0
+L BYTE 0            ; Length of string generated
 minAsciiCode = 41h  ; Minimum ascii code generated
 asciiRange = 26     ; This sets the upper bound of codes generated
                     ; to minAsciiCode + asciiRange - 1
@@ -77,7 +77,8 @@ L1:
     MOV eax, 26
     CALL RandomRange
     ADD eax, 7
-    MOV ecx, eax
+    MOV L, al
+    MOVZX ecx, L
 
     ; Fill array with random ascii codes
     L2:
