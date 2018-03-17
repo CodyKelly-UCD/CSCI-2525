@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 16:56:27
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 17:15:08
 : Strings.as						     Page 1 - 1
 
 
@@ -159,6 +159,7 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 16:56:27
 
  000000A1			GetRandomColor PROC
 				; Generates a random color code
+				; Excluding black (0)
 				;
 				; Returns:
 				; EAX: Color code
@@ -168,12 +169,12 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 16:56:27
  000000A1  B8 00000000		clearEAX
  000000A6  B8 0000000F		MOV eax, 15
  000000AB  E8 00000000 E	CALL RandomRange
- 000000B0  40			INC eax
+ 000000B0  40			INC eax     ; Add one to exclude 0 (black)
  000000B1  C3			RET
  000000B2			GetRandomColor ENDP
 
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 16:56:27
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/08/18 17:15:08
 : Strings.as						     Symbols 2 - 1
 
 

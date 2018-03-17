@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/15/18 15:20:01
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/17/18 15:18:09
 inclassMENU.as						     Page 1 - 1
 
 
@@ -44,60 +44,12 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/15/18 15:20:01
  = 00000033			maxLength = 51d
 
  00000000			.data
- 00000000 4D 41 49 4E 20	Menuprompt1 byte 'MAIN MENU', 0Ah, 0Dh,
-	   4D 45 4E 55 0A
-	   0D 3D 3D 3D 3D
-	   3D 3D 3D 3D 3D
-	   3D 0A 0D 31 2E
-	   20 45 6E 74 65
-	   72 20 61 20 53
-	   74 72 69 6E 67
-	   3A 0A 0D 32 2E
-	   20 43 6F 6E 76
-	   65 72 74 20 61
-	   6C 6C 20 65 6C
-	   65 6D 65 6E 74
-	   73 20 74 6F 20
-	   6C 6F 77 65 72
-	   20 63 61 73 65
-	   3A 20 0A 0D 33
-	   2E 20 52 65 6D
-	   6F 76 65 20 61
-	   6C 6C 20 6E 6F
-	   6E 2D 6C 65 74
-	   74 65 72 20 65
-	   6C 65 6D 65 6E
-	   74 73 3A 20 0A
-	   0D 34 2E 20 44
-	   65 74 65 72 6D
-	   69 6E 65 20 69
-	   66 20 74 68 65
-	   20 73 74 72 69
-	   6E 67 20 69 73
-	   20 61 20 70 61
-	   6C 69 6E 64 72
-	   6F 6D 65 3A 20
-	   0A 0D 35 2E 20
-	   44 69 73 70 6C
-	   61 79 20 74 68
-	   65 20 73 74 72
-	   69 6E 67 3A 20
-	   0A 0D 36 2E 20
-	   45 78 69 74 3A
-	   20 0A 0D 00
-				'==========', 0Ah, 0Dh,
-				'1. Enter a String:', 0Ah, 0Dh,
-				'2. Convert all elements to lower case: ',0Ah, 0Dh,
-				'3. Remove all non-letter elements: ',0Ah, 0Dh,
-				'4. Determine if the string is a palindrome: ',0Ah, 0Dh,
-				'5. Display the string: ',0Ah, 0Dh,
-				'6. Exit: ',0Ah, 0Dh, 0h
- 000000CC 00			UserOption byte 0h
- 000000CD  00000033 [		theString byte maxLength dup(0)
+ 00000000 00			UserOption byte 0h
+ 00000001  00000033 [		theString byte maxLength dup(0)
 	    00
 	   ]
- 00000100 00			theStringLen byte 0
- 00000101 59 6F 75 20 68	errormessage byte 'You have entered an invalid option. Please try again.', 0Ah, 0Dh, 0h
+ 00000034 00			theStringLen byte 0
+ 00000035 59 6F 75 20 68	errormessage byte 'You have entered an invalid option. Please try again.', 0Ah, 0Dh, 0h
 	   61 76 65 20 65
 	   6E 74 65 72 65
 	   64 20 61 6E 20
@@ -109,86 +61,211 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/15/18 15:20:01
 	   79 20 61 67 61
 	   69 6E 2E 0A 0D
 	   00
-
-
  00000000			.code
  00000000			main PROC
 
- 00000000  E8 00000091		call ClearRegisters          ;// clears registers
+ 00000000  E8 000000CA		call ClearRegisters          ;// clears registers
  00000005			startHere:
- 00000005  E8 00000000 E	call clrscr
- 0000000A  BA 00000000 R	mov edx, offset menuprompt1
- 0000000F  E8 00000000 E	call WriteString
- 00000014  E8 00000000 E	call readhex
- 00000019  A2 000000CC R	mov useroption, al
+ 00000005  E8 000000E4		call DisplayMainMenu
+ 0000000A  E8 00000000 E	call readhex
+ 0000000F  A2 00000000 R	mov useroption, al
 
- 0000001E  BA 000000CD R	mov edx, offset theString
- 00000023  B9 00000033		mov ecx, lengthof theString
- 00000028			opt1:
- 00000028  80 3D 000000CC R	cmp useroption, 1
+ 00000014  BA 00000001 R	mov edx, offset theString
+ 00000019  B9 00000033		mov ecx, lengthof theString
+ 0000001E  BB 00000034 R	mov ebx, offset thestringlen
+ 00000023			opt1:
+ 00000023  80 3D 00000000 R	cmp useroption, 1
 	   01
- 0000002F  75 11		jne opt2
- 00000031  E8 00000000 E	call clrscr
- 00000036  BB 00000100 R	mov ebx, offset thestringlen
- 0000003B  E8 00000075		call option1
- 00000040  EB C3		jmp starthere
+ 0000002A  75 0C		jne opt2
+ 0000002C  E8 00000000 E	call clrscr
+ 00000031  E8 000000F0		call option1
+ 00000036  EB CD		jmp starthere
 
- 00000042			opt2:
- 00000042  80 3D 000000CC R	cmp useroption, 2
+ 00000038			opt2:
+ 00000038  80 3D 00000000 R	cmp useroption, 2
 	   02
- 00000049  75 13		jne opt3
- 0000004B  E8 00000000 E	call clrscr
- 00000050  0F B6 0D		movzx ecx, thestringlen
-	   00000100 R
- 00000057  E8 00000071		call option2
- 0000005C  EB A7		jmp starthere
- 0000005E			opt3:
- 0000005E			opt5:
- 0000005E  80 3D 000000CC R	cmp useroption, 5
+ 0000003F  75 0C		jne opt3
+ 00000041  E8 00000000 E	call clrscr
+ 00000046  E8 000000F3		call option2
+ 0000004B  EB B8		jmp starthere
+ 0000004D			opt3:
+ 0000004D  80 3D 00000000 R	cmp useroption, 3
+	   03
+ 00000054  75 0C		jne opt4
+ 00000056  E8 00000000 E	call clrscr
+ 0000005B  E8 000000FB		call option3
+ 00000060  EB A3		jmp starthere
+ 00000062			opt4:
+ 00000062  80 3D 00000000 R	cmp useroption, 4
+	   04
+ 00000069  75 0C		jne opt5
+ 0000006B  E8 00000000 E	call clrscr
+ 00000070  E8 00000127		call option4
+ 00000075  EB 8E		jmp starthere
+ 00000077			opt5:
+ 00000077  80 3D 00000000 R	cmp useroption, 5
 	   05
- 00000065  75 07		jne opt6
- 00000067  E8 00000079		call option5
- 0000006C  EB 97		jmp starthere
- 0000006E			opt6:
- 0000006E  80 3D 000000CC R	cmp useroption, 6
-	   06
- 00000075  75 02		jne oops
- 00000077  EB 16		jmp quitit
- 00000079			oops:
- 00000079  52			push edx
- 0000007A  BA 00000101 R	mov edx, offset errormessage
- 0000007F  E8 00000000 E	call writestring
- 00000084  E8 00000000 E	call waitmsg
- 00000089  5A			pop edx
+ 0000007E  75 0F		jne opt6
+ 00000080  E8 00000000 E	call clrscr
+ 00000085  E8 0000016C		call option5
  0000008A  E9 FFFFFF76		jmp starthere
+ 0000008F			opt6:
+ 0000008F  80 3D 00000000 R	cmp useroption, 6
+	   06
+ 00000096  75 0F		jne opt7
+ 00000098  E8 00000000 E	call clrscr
+ 0000009D  E8 00000172		call option6
+ 000000A2  E9 FFFFFF5E		jmp starthere
+ 000000A7			opt7:
+ 000000A7  80 3D 00000000 R	cmp useroption, 7
+	   07
+ 000000AE  75 02		jne oops
+ 000000B0  EB 16		jmp quitit
+ 000000B2			oops:
+ 000000B2  52			push edx
+ 000000B3  BA 00000035 R	mov edx, offset errormessage
+ 000000B8  E8 00000000 E	call writestring
+ 000000BD  E8 00000000 E	call waitmsg
+ 000000C2  5A			pop edx
+ 000000C3  E9 FFFFFF3D		jmp starthere
 
- 0000008F			quitit:
+ 000000C8			quitit:
 				exit
- 0000008F  6A 00	   *	    push   +000000000h
- 00000091  E8 00000000 E   *	    call   ExitProcess
- 00000096			main ENDP
+ 000000C8  6A 00	   *	    push   +000000000h
+ 000000CA  E8 00000000 E   *	    call   ExitProcess
+ 000000CF			main ENDP
 				;// Procedures
 				;// ===============================================================
- 00000096			ClearRegisters Proc
+ 000000CF			ClearRegisters Proc
 				;// Description:  Clears the registers EAX, EBX, ECX, EDX, ESI, EDI
 				;// Requires:  Nothing
 				;// Returns:  Nothing, but all registers will be cleared.
 
- 00000096  B8 00000000		cleareax
- 0000009B  BB 00000000		clearebx
- 000000A0  B9 00000000		clearecx
- 000000A5  BA 00000000		clearedx
- 000000AA  BE 00000000		clearesi
- 000000AF  BF 00000000		clearedi
+ 000000CF  B8 00000000		cleareax
+ 000000D4  BB 00000000		clearebx
+ 000000D9  B9 00000000		clearecx
+ 000000DE  BA 00000000		clearedx
+ 000000E3  BE 00000000		clearesi
+ 000000E8  BF 00000000		clearedi
 
- 000000B4  C3			ret
- 000000B5			ClearRegisters ENDP
-				;// ---------------------------------------------------------------
- 000000B5			option1 proc uses edx ecx
- 000000B5  52		   *	    push   edx
- 000000B6  51		   *	    push   ecx
- 00000139			.data
- 00000139 50 6C 65 61 73	option1prompt byte 'Please enter a string of characters (50 or less): ', 0Ah, 0Dh, '--->', 0h
+ 000000ED  C3			ret
+ 000000EE			ClearRegisters ENDP
+
+ 000000EE			DisplayMainMenu proc
+				;// Description:  Displays the main menu
+				;// Requires:  Nothing
+				;// Returns:  Nothing
+
+ 0000006D			.data
+ 0000006D 4D 41 49 4E 20	Menuprompt1 byte 'MAIN MENU', 0Ah, 0Dh,
+	   4D 45 4E 55 0A
+	   0D 3D 3D 3D 3D
+	   3D 3D 3D 3D 3D
+	   3D 0A 0D 31 2E
+	   20 45 6E 74 65
+	   72 20 61 20 53
+	   74 72 69 6E 67
+	   0A 0D 32 2E 20
+	   43 6F 6E 76 65
+	   72 74 20 61 6C
+	   6C 20 65 6C 65
+	   6D 65 6E 74 73
+	   20 74 6F 20 6C
+	   6F 77 65 72 20
+	   63 61 73 65 0A
+	   0D 33 2E 20 52
+	   65 6D 6F 76 65
+	   20 61 6C 6C 20
+	   6E 6F 6E 2D 6C
+	   65 74 74 65 72
+	   20 65 6C 65 6D
+	   65 6E 74 73 0A
+	   0D 34 2E 20 44
+	   65 74 65 72 6D
+	   69 6E 65 20 69
+	   66 20 74 68 65
+	   20 73 74 72 69
+	   6E 67 20 69 73
+	   20 61 20 70 61
+	   6C 69 6E 64 72
+	   6F 6D 65 20 28
+	   4E 4F 54 20 63
+	   61 73 65 20 73
+	   65 6E 73 69 74
+	   69 76 65 29 0A
+	   0D 35 2E 20 44
+	   69 73 70 6C 61
+	   79 20 74 68 65
+	   20 73 74 72 69
+	   6E 67 0A 0D 36
+	   2E 20 00
+				'==========', 0Ah, 0Dh,
+				'1. Enter a String', 0Ah, 0Dh,
+				'2. Convert all elements to lower case',0Ah, 0Dh,
+				'3. Remove all non-letter elements',0Ah, 0Dh,
+				'4. Determine if the string is a palindrome (NOT case sensitive)',0Ah, 0Dh,
+				'5. Display the string',0Ah, 0Dh,
+				'6. ', 0
+ 0000013D 45 58 54 52 41	Menuprompt2 byte 'EXTRA CREDIT', 0
+	   20 43 52 45 44
+	   49 54 00
+ 0000014A 3A 20 44 65 74	Menuprompt3 byte ': Determine if the string is a palindrome (case sensitive)', 0Ah, 0Dh,
+	   65 72 6D 69 6E
+	   65 20 69 66 20
+	   74 68 65 20 73
+	   74 72 69 6E 67
+	   20 69 73 20 61
+	   20 70 61 6C 69
+	   6E 64 72 6F 6D
+	   65 20 28 63 61
+	   73 65 20 73 65
+	   6E 73 69 74 69
+	   76 65 29 0A 0D
+	   37 2E 20 45 78
+	   69 74 3A 20 0A
+	   0D 00
+				'7. Exit: ',0Ah, 0Dh, 0h
+
+ 000000EE			.code
+				; Clear screen
+ 000000EE  E8 00000000 E	call clrscr
+
+				; Display first part of main menu
+ 000000F3  BA 0000006D R	mov edx, offset menuprompt1
+ 000000F8  E8 00000000 E	call WriteString
+
+				; Display the words EXTRA CREDIT in gold
+ 000000FD  B8 0000000E		mov eax, 14
+ 00000102  BA 0000013D R	mov edx, offset menuprompt2
+ 00000107  E8 00000000 E	call SetTextColor
+ 0000010C  E8 00000000 E	call WriteString
+
+				; Reset text color and display the rest of the menu
+ 00000111  B8 00000007		mov eax, 7
+ 00000116  BA 0000014A R	mov edx, offset menuprompt3
+ 0000011B  E8 00000000 E	call settextcolor
+ 00000120  E8 00000000 E	call writestring
+ 00000125  C3			ret
+ 00000126			DisplayMainMenu endp
+
+ 00000126			option1 proc uses edx ecx
+				; Description:  Receives a string from the user
+				;
+				; Receives:
+				; EDX: The offset of the byte array to store the string in.
+				;      Must have 50 elements.
+				;
+				; Returns: 
+				; EDX: string from user
+				; EBX: length of string
+				;
+				; Requires:
+				; Array must have 50 elements
+
+ 00000126  52		   *	    push   edx
+ 00000127  51		   *	    push   ecx
+ 00000192			.data
+ 00000192 50 6C 65 61 73	option1prompt byte 'Please enter a string of characters (50 or less): ', 0Ah, 0Dh, '--->', 0h
 	   65 20 65 6E 74
 	   65 72 20 61 20
 	   73 74 72 69 6E
@@ -201,67 +278,280 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/15/18 15:20:01
 	   0A 0D 2D 2D 2D
 	   3E 00
 
- 000000B7			.code
- 000000B7  52			push edx       ;//saving the address of the string
- 000000B8  BA 00000139 R	mov edx, offset option1prompt
- 000000BD  E8 00000000 E	call writestring
- 000000C2  5A			pop edx
+ 00000128			.code
+ 00000128  52			push edx       ; saving the address of the string
+ 00000129  BA 00000192 R	mov edx, offset option1prompt
+ 0000012E  E8 00000000 E	call writestring
+ 00000133  5A			pop edx
 
-				;//add procedure to clear string (loop through and place zeros)
+				; add procedure to clear string (loop through and place zeros)
 
- 000000C3  E8 00000000 E	call readstring
- 000000C8  88 03		mov byte ptr [ebx], al     ;//length of user entered string, now in thestringlen
+ 00000134  E8 00000000 E	call readstring
+ 00000139  88 03		mov byte ptr [ebx], al     ;//length of user entered string, now in thestringlen
 
 				ret
- 000000CA  59		   *	    pop    ecx
- 000000CB  5A		   *	    pop    edx
- 000000CC  C3		   *	    ret    00000h
- 000000CD			option1 endp
+ 0000013B  59		   *	    pop    ecx
+ 0000013C  5A		   *	    pop    edx
+ 0000013D  C3		   *	    ret    00000h
+ 0000013E			option1 endp
 
- 000000CD			option2 proc uses edx ebx
- 000000CD  52		   *	    push   edx
- 000000CE  53		   *	    push   ebx
- 000000CF			L2:
- 000000CF  8A 04 16		mov al, byte ptr [edx+esi]
- 000000D2  3C 41		cmp al, 41h
- 000000D4  72 09		jb keepgoing
- 000000D6  3C 5A		cmp al, 5ah
- 000000D8  77 05		ja keepgoing
- 000000DA  0C 20		or al, 20h     ;//could use add al, 20h
- 000000DC  88 04 16		mov byte ptr [edx+esi], al
- 000000DF			keepgoing:
- 000000DF  46			inc esi
- 000000E0  E2 ED		loop L2
+ 0000013E			option2 proc uses edx ebx
+				; Description:  Converts all uppercase letters in string to lowercase
+				;
+				; Receives:
+				; EDX: Offset of string array
+				; ECX: Length of string array
+				;
+				; Returns:  
+				; EDX: String array with converted letters, if any
+
+ 0000013E  52		   *	    push   edx
+ 0000013F  53		   *	    push   ebx
+ 00000140  BE 00000000		clearESI
+ 00000145			L2:
+ 00000145  8A 04 16		mov al, byte ptr [edx+esi]
+ 00000148  3C 41		cmp al, 41h
+ 0000014A  72 09		jb keepgoing
+ 0000014C  3C 5A		cmp al, 5ah
+ 0000014E  77 05		ja keepgoing
+ 00000150  0C 20		or al, 20h     ;//could use add al, 20h
+ 00000152  88 04 16		mov byte ptr [edx+esi], al
+ 00000155			keepgoing:
+ 00000155  46			inc esi
+ 00000156  E2 ED		loop L2
 				ret
- 000000E2  5B		   *	    pop    ebx
- 000000E3  5A		   *	    pop    edx
- 000000E4  C3		   *	    ret    00000h
- 000000E5			option2 endp
+ 00000158  5B		   *	    pop    ebx
+ 00000159  5A		   *	    pop    edx
+ 0000015A  C3		   *	    ret    00000h
+ 0000015B			option2 endp
 
- 000000E5			option5 proc uses edx 
- 000000E5  52		   *	    push   edx
- 00000172			.data
- 00000172 54 68 65 20 53	option5prompt byte 'The String is: ', 0h
+ 0000015B			option3 proc
+				; Description:  Removes all non-letter characters from string
+				;
+				; Receives:
+				; EDX:  offset of string array
+				;
+				; Returns:  
+				; EDX: offset of string array
+				; EBX: new length of string
+ 0000015B  50			push eax
+ 0000015C  56			push esi
+ 0000015D  52			push edx
+ 0000015E  53			push ebx
+ 0000015F  BE 00000000		clearESI
+ 00000164  B8 00000000		clearEAX
+
+ 00000169			L1:
+				; Move current element into al
+ 00000169  8A 04 16		mov al, byte ptr [edx + esi]
+
+				; Test if current element is NOT a capital letter
+ 0000016C  3C 41		cmp al, 41h
+ 0000016E  72 1E		jb notLetter
+ 00000170  3C 5B		cmp al, 5bh
+ 00000172  72 0C		jb letter
+
+				; If the element isn't a capital letter, it may be a lowercase letter
+ 00000174  3C 61		cmp al, 61h
+ 00000176  72 16		jb notLetter
+ 00000178  3C 7B		cmp al, 7bh
+ 0000017A  72 04		jb letter
+ 0000017C  3C 75		cmp al, 75h
+ 0000017E  77 0E		ja notletter
+
+ 00000180			letter:
+				; If current element IS letter:
+				; Move element into element at ah
+ 00000180  0F B6 DC		movzx ebx, ah
+				; Make current element 0
+ 00000183  C6 04 16 00		mov byte ptr [edx + esi], 0
+				; Move letter into new position
+ 00000187  88 04 13		mov byte ptr [edx + ebx], al
+				; Increment ah so we get a new valid position
+ 0000018A  FE C4		inc ah
+ 0000018C  EB 04		jmp keepgoing
+
+ 0000018E			notLetter:
+				; If current element is NOT a letter:
+				; Make current element 0
+ 0000018E  C6 04 16 00		mov byte ptr [edx + esi], 0
+
+ 00000192			keepgoing:
+ 00000192  46			inc esi
+ 00000193  E2 D4		LOOP L1
+
+ 00000195			complete:
+ 00000195  5B			pop ebx
+ 00000196  88 23		mov byte ptr [ebx], ah  ; Return length of string
+ 00000198  5A			pop edx
+ 00000199  5E			pop esi
+ 0000019A  58			pop eax
+ 0000019B  C3			ret
+ 0000019C			option3 endp
+
+ 0000019C			option4 proc
+				; Description:  Checks if a given string is a palindrome.
+				; To be a palindrome, the given string must read the same forwards as it
+				; does backwards. This means that a character at index n must be the same
+				; as the character at index (length of string - 1) - n, where n is less than or
+				; equal to (length of string) / 2.
+				;
+				; Receives:  
+				; EDX: Offset of string array
+				; EBX: Number of characters in string
+				;
+				; Returns:  
+				;
+				; Requires:  
+
+ 000001CB			.data 
+ 000001CB 20 69 73 20 61	palMsg byte " is a palindrome.",0
+	   20 70 61 6C 69
+	   6E 64 72 6F 6D
+	   65 2E 00
+ 000001DD 20 69 73 20 6E	notPalMsg byte " is not a palindrome.",0
+	   6F 74 20 61 20
+	   70 61 6C 69 6E
+	   64 72 6F 6D 65
+	   2E 00
+ 0000019C			.code
+ 0000019C  53			push ebx
+ 0000019D  56			push esi
+ 0000019E  50			push eax
+				; ESI will hold the first index to compare
+ 0000019F  BE 00000000		mov esi, 0
+				; EBX will hold the second
+ 000001A4  0F B6 1B		movzx ebx, byte ptr [ebx]
+ 000001A7  4B			dec ebx
+
+				; We're going to loop through as many elements as there
+				; are in the string, 
+ 000001A8  51			push ecx
+ 000001A9  8B CB		mov ecx, ebx
+
+				; Loop through the string, comparing elements at front and back
+ 000001AB			L1:
+ 000001AB  8A 04 16		mov al, byte ptr [edx + esi]
+ 000001AE  3A 04 13		cmp al, byte ptr [edx + ebx]
+ 000001B1  75 24		jne notPalindrome
+ 000001B3  46			inc esi
+ 000001B4  4B			dec ebx
+ 000001B5  3B F3		cmp esi, ebx
+ 000001B7  73 02		jae palindrome ; If esi (first index) is greater than or equal to 
+				               ; ebx (second index), we're done.
+ 000001B9  E2 F0		LOOP L1
+
+ 000001BB			palindrome:
+				; Write results to screen
+ 000001BB  E8 00000000 E	call WriteString
+ 000001C0  52			push edx
+ 000001C1  BA 000001CB R	mov edx, offset palMsg
+ 000001C6  E8 00000000 E	call WriteString
+ 000001CB  E8 00000000 E	call crlf
+ 000001D0  E8 00000000 E	call waitmsg
+ 000001D5  EB 19		jmp complete
+
+ 000001D7			notPalindrome:
+ 000001D7  E8 00000000 E	call WriteString
+ 000001DC  BA 000001DD R	mov edx, offset notPalMsg
+ 000001E1  E8 00000000 E	call WriteString
+ 000001E6  E8 00000000 E	call crlf
+ 000001EB  E8 00000000 E	call waitmsg
+
+ 000001F0			complete:
+ 000001F0  5A			pop edx
+ 000001F1  59			pop ecx
+ 000001F2  58			pop eax
+ 000001F3  5E			pop esi
+ 000001F4  5B			pop ebx
+ 000001F5  C3			ret
+ 000001F6			option4 endp
+
+ 000001F6			option5 proc uses edx 
+ 000001F6  52		   *	    push   edx
+ 000001F3			.data
+ 000001F3 54 68 65 20 53	option5prompt byte 'The String is: ', 0h
 	   74 72 69 6E 67
 	   20 69 73 3A 20
 	   00
- 000000E6			.code
- 000000E6  E8 00000000 E	call clrscr
- 000000EB  52			push edx
- 000000EC  BA 00000172 R	mov edx, offset option5prompt
- 000000F1  E8 00000000 E	call writestring
- 000000F6  5A			pop edx
- 000000F7  E8 00000000 E	call writestring
- 000000FC  E8 00000000 E	call waitmsg
+ 000001F7			.code
+ 000001F7  52			push edx
+ 000001F8  BA 000001F3 R	mov edx, offset option5prompt
+ 000001FD  E8 00000000 E	call writestring
+ 00000202  5A			pop edx
+ 00000203  E8 00000000 E	call writestring
+ 00000208  E8 00000000 E	call crlf
+ 0000020D  E8 00000000 E	call waitmsg
 				ret
- 00000101  5A		   *	    pop    edx
- 00000102  C3		   *	    ret    00000h
- 00000103			option5 endp
+ 00000212  5A		   *	    pop    edx
+ 00000213  C3		   *	    ret    00000h
+ 00000214			option5 endp
 
+ 00000214			option6 proc
+ 00000203			.data 
+ 00000203 20 69 73 20 61	palMsg2 byte " is a palindrome.",0
+	   20 70 61 6C 69
+	   6E 64 72 6F 6D
+	   65 2E 00
+ 00000215 20 69 73 20 6E	notPalMsg2 byte " is not a palindrome.",0
+	   6F 74 20 61 20
+	   70 61 6C 69 6E
+	   64 72 6F 6D 65
+	   2E 00
+ 00000214			.code
+ 00000214  53			push ebx
+ 00000215  56			push esi
+ 00000216  50			push eax
+				; ESI will hold the first index to compare
+ 00000217  BE 00000000		mov esi, 0
+				; EBX will hold the second
+ 0000021C  0F B6 1B		movzx ebx, byte ptr [ebx]
+ 0000021F  4B			dec ebx
+
+				; We're going to loop through as many elements as there
+				; are in the string, 
+ 00000220  51			push ecx
+ 00000221  8B CB		mov ecx, ebx
+
+				; Loop through the string, comparing elements at front and back
+ 00000223			L1:
+ 00000223  8A 04 16		mov al, byte ptr [edx + esi]
+ 00000226  3A 04 13		cmp al, byte ptr [edx + ebx]
+ 00000229  75 21		jne notPalindrome
+ 0000022B  46			inc esi
+ 0000022C  4B			dec ebx
+ 0000022D  E2 F4		LOOP L1
+
+ 0000022F  59			pop ecx
+
+				; Write results to screen
+ 00000230  E8 00000000 E	call WriteString
+ 00000235  52			push edx
+ 00000236  BA 000001CB R	mov edx, offset palMsg
+ 0000023B  E8 00000000 E	call WriteString
+ 00000240  E8 00000000 E	call crlf
+ 00000245  E8 00000000 E	call waitmsg
+ 0000024A  EB 19		jmp complete
+
+ 0000024C			notPalindrome:
+ 0000024C  E8 00000000 E	call WriteString
+ 00000251  BA 000001DD R	mov edx, offset notPalMsg
+ 00000256  E8 00000000 E	call WriteString
+ 0000025B  E8 00000000 E	call crlf
+ 00000260  E8 00000000 E	call waitmsg
+
+
+ 00000265			complete:
+ 00000265  5A			pop edx
+ 00000266  58			pop eax
+ 00000267  5E			pop esi
+ 00000268  5B			pop ebx
+ 00000269  C3			ret
+ 0000026A			option6 endp
 
 				END main
 
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/15/18 15:20:01
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/17/18 15:18:09
 inclassMENU.as						     Symbols 2 - 1
 
 
@@ -355,15 +645,15 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000182 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000103 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000022B Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000026A Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
-ClearRegisters . . . . . . . . .	P Near	 00000096 _TEXT	Length= 0000001F Public STDCALL
+ClearRegisters . . . . . . . . .	P Near	 000000CF _TEXT	Length= 0000001F Public STDCALL
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -371,6 +661,7 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+DisplayMainMenu  . . . . . . . .	P Near	 000000EE _TEXT	Length= 00000038 Public STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -464,20 +755,37 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000096 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000CF Public STDCALL
   startHere  . . . . . . . . . .	L Near	 00000005 _TEXT	
-  opt1 . . . . . . . . . . . . .	L Near	 00000028 _TEXT	
-  opt2 . . . . . . . . . . . . .	L Near	 00000042 _TEXT	
-  opt3 . . . . . . . . . . . . .	L Near	 0000005E _TEXT	
-  opt5 . . . . . . . . . . . . .	L Near	 0000005E _TEXT	
-  opt6 . . . . . . . . . . . . .	L Near	 0000006E _TEXT	
-  oops . . . . . . . . . . . . .	L Near	 00000079 _TEXT	
-  quitit . . . . . . . . . . . .	L Near	 0000008F _TEXT	
-option1  . . . . . . . . . . . .	P Near	 000000B5 _TEXT	Length= 00000018 Public STDCALL
-option2  . . . . . . . . . . . .	P Near	 000000CD _TEXT	Length= 00000018 Public STDCALL
-  L2 . . . . . . . . . . . . . .	L Near	 000000CF _TEXT	
-  keepgoing  . . . . . . . . . .	L Near	 000000DF _TEXT	
-option5  . . . . . . . . . . . .	P Near	 000000E5 _TEXT	Length= 0000001E Public STDCALL
+  opt1 . . . . . . . . . . . . .	L Near	 00000023 _TEXT	
+  opt2 . . . . . . . . . . . . .	L Near	 00000038 _TEXT	
+  opt3 . . . . . . . . . . . . .	L Near	 0000004D _TEXT	
+  opt4 . . . . . . . . . . . . .	L Near	 00000062 _TEXT	
+  opt5 . . . . . . . . . . . . .	L Near	 00000077 _TEXT	
+  opt6 . . . . . . . . . . . . .	L Near	 0000008F _TEXT	
+  opt7 . . . . . . . . . . . . .	L Near	 000000A7 _TEXT	
+  oops . . . . . . . . . . . . .	L Near	 000000B2 _TEXT	
+  quitit . . . . . . . . . . . .	L Near	 000000C8 _TEXT	
+option1  . . . . . . . . . . . .	P Near	 00000126 _TEXT	Length= 00000018 Public STDCALL
+option2  . . . . . . . . . . . .	P Near	 0000013E _TEXT	Length= 0000001D Public STDCALL
+  L2 . . . . . . . . . . . . . .	L Near	 00000145 _TEXT	
+  keepgoing  . . . . . . . . . .	L Near	 00000155 _TEXT	
+option3  . . . . . . . . . . . .	P Near	 0000015B _TEXT	Length= 00000041 Public STDCALL
+  L1 . . . . . . . . . . . . . .	L Near	 00000169 _TEXT	
+  letter . . . . . . . . . . . .	L Near	 00000180 _TEXT	
+  notLetter  . . . . . . . . . .	L Near	 0000018E _TEXT	
+  keepgoing  . . . . . . . . . .	L Near	 00000192 _TEXT	
+  complete . . . . . . . . . . .	L Near	 00000195 _TEXT	
+option4  . . . . . . . . . . . .	P Near	 0000019C _TEXT	Length= 0000005A Public STDCALL
+  L1 . . . . . . . . . . . . . .	L Near	 000001AB _TEXT	
+  palindrome . . . . . . . . . .	L Near	 000001BB _TEXT	
+  notPalindrome  . . . . . . . .	L Near	 000001D7 _TEXT	
+  complete . . . . . . . . . . .	L Near	 000001F0 _TEXT	
+option5  . . . . . . . . . . . .	P Near	 000001F6 _TEXT	Length= 0000001E Public STDCALL
+option6  . . . . . . . . . . . .	P Near	 00000214 _TEXT	Length= 00000056 Public STDCALL
+  L1 . . . . . . . . . . . . . .	L Near	 00000223 _TEXT	
+  notPalindrome  . . . . . . . .	L Near	 0000024C _TEXT	
+  complete . . . . . . . . . . .	L Near	 00000265 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -601,7 +909,9 @@ MB_YESNOCANCEL . . . . . . . . .	Number	 00000003h
 MB_YESNO . . . . . . . . . . . .	Number	 00000004h   
 MENU_EVENT . . . . . . . . . . .	Number	 00000008h   
 MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h   
-Menuprompt1  . . . . . . . . . .	Byte	 00000000 _DATA	
+Menuprompt1  . . . . . . . . . .	Byte	 0000006D _DATA	
+Menuprompt2  . . . . . . . . . .	Byte	 0000013D _DATA	
+Menuprompt3  . . . . . . . . . .	Byte	 0000014A _DATA	
 MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
 NULL . . . . . . . . . . . . . .	Number	 00000000h   
 NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h   
@@ -622,7 +932,7 @@ SetConsoleTitle  . . . . . . . .	Text   	 SetConsoleTitleA
 TAB  . . . . . . . . . . . . . .	Number	 00000009h   
 TRUE . . . . . . . . . . . . . .	Number	 00000001h   
 TRUNCATE_EXISTING  . . . . . . .	Number	 00000005h   
-UserOption . . . . . . . . . . .	Byte	 000000CC _DATA	
+UserOption . . . . . . . . . . .	Byte	 00000000 _DATA	
 VK_11  . . . . . . . . . . . . .	Number	 000000BDh   
 VK_12  . . . . . . . . . . . . .	Number	 000000BBh   
 VK_ADD . . . . . . . . . . . . .	Number	 0000006Bh   
@@ -708,7 +1018,7 @@ black  . . . . . . . . . . . . .	Number	 00000000h
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
-errormessage . . . . . . . . . .	Byte	 00000101 _DATA	
+errormessage . . . . . . . . . .	Byte	 00000035 _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
@@ -720,11 +1030,15 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 maxLength  . . . . . . . . . . .	Number	 00000033h   
-option1prompt  . . . . . . . . .	Byte	 00000139 _DATA	
-option5prompt  . . . . . . . . .	Byte	 00000172 _DATA	
+notPalMsg2 . . . . . . . . . . .	Byte	 00000215 _DATA	
+notPalMsg  . . . . . . . . . . .	Byte	 000001DD _DATA	
+option1prompt  . . . . . . . . .	Byte	 00000192 _DATA	
+option5prompt  . . . . . . . . .	Byte	 000001F3 _DATA	
+palMsg2  . . . . . . . . . . . .	Byte	 00000203 _DATA	
+palMsg . . . . . . . . . . . . .	Byte	 000001CB _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-theStringLen . . . . . . . . . .	Byte	 00000100 _DATA	
-theString  . . . . . . . . . . .	Byte	 000000CD _DATA	
+theStringLen . . . . . . . . . .	Byte	 00000034 _DATA	
+theString  . . . . . . . . . . .	Byte	 00000001 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
