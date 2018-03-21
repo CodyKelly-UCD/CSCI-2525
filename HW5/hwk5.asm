@@ -4,11 +4,12 @@ TITLE inclassMENU.asm
 ; Description: This program presents a menu allowing the user to pick a menu option
 ;              which then performs a given task.
 ; 1.  The user enters a string of less than 50 characters.
-; 2.  The entered string is converted to upper case.
+; 2.  The entered string is converted to lower case.
 ; 3.  The entered string has all non - letter elements removed.
-; 4.  Is the entered string a palindrome.
-; 5.  Print the string.
-; 6.  Exit
+; 4.  Is the entered string a palindrome (not case-sensitive).
+; 5.  Is the string a palindrome (case-sensitive).
+; 6.  Print the string.
+; 7.  Exit
 ; ====================================================================================
 
 Include Irvine32.inc 
@@ -119,11 +120,11 @@ Menuprompt1 byte 'MAIN MENU', 0Ah, 0Dh,
 '1. Enter a String', 0Ah, 0Dh,
 '2. Convert all elements to lower case',0Ah, 0Dh,
 '3. Remove all non-letter elements',0Ah, 0Dh,
-'4. Determine if the string is a palindrome (NOT case sensitive)',0Ah, 0Dh,
-'5. Display the string',0Ah, 0Dh,
-'6. ', 0
+'4. Determine if the string is a palindrome (not case-sensitive)',0Ah, 0Dh,
+'5. ', 0
 Menuprompt2 byte 'EXTRA CREDIT', 0
-Menuprompt3 byte ': Determine if the string is a palindrome (case sensitive)', 0Ah, 0Dh,
+Menuprompt3 byte ': Determine if the string is a palindrome (case-sensitive)', 0Ah, 0Dh,
+'6. Display the string',0Ah, 0Dh,
 '7. Exit: ',0Ah, 0Dh, 0h
 
 .code
@@ -275,6 +276,51 @@ option4 proc
 ; as the character at index (length of string - 1) - n, where n is less than or
 ; equal to (length of string) / 2.
 ;
+; This is not a case-sensitive palindrome check
+;
+; Receives:  
+; EDX: Offset of string array
+; EBX: Number of characters in string
+
+.data
+theStringUppercase byte maxLength dup(0)
+
+.code
+push esi
+push eax
+push ecx
+
+; First we put the contents of the string received into
+; theStringUppercase
+clearESI
+L1:
+mov al, [edx + esi]
+mov theStringUppercase[esi], al
+inc esi
+loop L1
+
+; Then we convert the new string to uppercase
+pop ecx
+mov edx, OFFSET theStringUppercase
+call option2
+
+; Then we check the string for palindromeness
+call option5
+
+pop edx
+pop esi
+ret
+option4 endp
+
+option5 proc
+; Description:  Checks if a given string is a palindrome.
+; To be a palindrome, the given string must read the same forwards as it
+; does backwards. This means that a character at index n must be the same
+; as the character at index (length of string - 1) - n, where n is less than or
+; equal to (length of string) / 2.
+;
+; This is a case-sensitive palindrome check
+;
 ; Receives:  
 ; EDX: Offset of string array
 ; EBX: Number of characters in string
@@ -284,8 +330,8 @@ option4 proc
 ; Requires:  
 
 .data 
-palMsg byte " is a palindrome.",0
-notPalMsg byte " is not a palindrome.",0
+palMsg byte "The string is a palindrome.",0
+notPalMsg byte "The string is not a palindrome.",0
 .code
 push ebx
 push esi
@@ -315,7 +361,6 @@ LOOP L1
 
 palindrome:
 ; Write results to screen
-call WriteString
 push edx
 mov edx, offset palMsg
 call WriteString
@@ -324,7 +369,7 @@ call waitmsg
 jmp complete
 
 notPalindrome:
-call WriteString
+push edx
 mov edx, offset notPalMsg
 call WriteString
 call crlf
@@ -337,9 +382,9 @@ pop eax
 pop esi
 pop ebx
 ret
-option4 endp
+option5 endp
 
-option5 proc uses edx 
+option6 proc uses edx 
 .data
 option5prompt byte 'The String is: ', 0h
 .code
@@ -350,61 +395,6 @@ pop edx
 call writestring
 call crlf
 call waitmsg
-ret
-option5 endp
-
-option6 proc
-.data 
-palMsg2 byte " is a palindrome.",0
-notPalMsg2 byte " is not a palindrome.",0
-.code
-push ebx
-push esi
-push eax
-; ESI will hold the first index to compare
-mov esi, 0
-; EBX will hold the second
-movzx ebx, byte ptr [ebx]
-dec ebx
-
-; We're going to loop through as many elements as there
-; are in the string, 
-push ecx
-mov ecx, ebx
-
-; Loop through the string, comparing elements at front and back
-L1:
-mov al, byte ptr [edx + esi]
-cmp al, byte ptr [edx + ebx]
-jne notPalindrome
-inc esi
-dec ebx
-LOOP L1
-
-pop ecx
-
-; Write results to screen
-call WriteString
-push edx
-mov edx, offset palMsg
-call WriteString
-call crlf
-call waitmsg
-jmp complete
-
-notPalindrome:
-call WriteString
-mov edx, offset notPalMsg
-call WriteString
-call crlf
-call waitmsg
-
-
-complete:
-pop edx
-pop eax
-pop esi
-pop ebx
 ret
 option6 endp
 

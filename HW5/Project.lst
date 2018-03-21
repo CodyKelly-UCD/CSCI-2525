@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/17/18 15:18:09
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/21/18 14:05:33
 inclassMENU.as						     Page 1 - 1
 
 
@@ -8,11 +8,12 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/17/18 15:18:09
 				; Description: This program presents a menu allowing the user to pick a menu option
 				;              which then performs a given task.
 				; 1.  The user enters a string of less than 50 characters.
-				; 2.  The entered string is converted to upper case.
+				; 2.  The entered string is converted to lower case.
 				; 3.  The entered string has all non - letter elements removed.
-				; 4.  Is the entered string a palindrome.
-				; 5.  Print the string.
-				; 6.  Exit
+				; 4.  Is the entered string a palindrome (not case-sensitive).
+				; 5.  Is the string a palindrome (case-sensitive).
+				; 6.  Print the string.
+				; 7.  Exit
 				; ====================================================================================
 
 				Include Irvine32.inc 
@@ -107,7 +108,7 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/17/18 15:18:09
 	   05
  0000007E  75 0F		jne opt6
  00000080  E8 00000000 E	call clrscr
- 00000085  E8 0000016C		call option5
+ 00000085  E8 00000139		call option5
  0000008A  E9 FFFFFF76		jmp starthere
  0000008F			opt6:
  0000008F  80 3D 00000000 R	cmp useroption, 6
@@ -189,27 +190,21 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/17/18 15:18:09
 	   20 61 20 70 61
 	   6C 69 6E 64 72
 	   6F 6D 65 20 28
-	   4E 4F 54 20 63
-	   61 73 65 20 73
+	   6E 6F 74 20 63
+	   61 73 65 2D 73
 	   65 6E 73 69 74
 	   69 76 65 29 0A
-	   0D 35 2E 20 44
-	   69 73 70 6C 61
-	   79 20 74 68 65
-	   20 73 74 72 69
-	   6E 67 0A 0D 36
-	   2E 20 00
+	   0D 35 2E 20 00
 				'==========', 0Ah, 0Dh,
 				'1. Enter a String', 0Ah, 0Dh,
 				'2. Convert all elements to lower case',0Ah, 0Dh,
 				'3. Remove all non-letter elements',0Ah, 0Dh,
-				'4. Determine if the string is a palindrome (NOT case sensitive)',0Ah, 0Dh,
-				'5. Display the string',0Ah, 0Dh,
-				'6. ', 0
- 0000013D 45 58 54 52 41	Menuprompt2 byte 'EXTRA CREDIT', 0
+				'4. Determine if the string is a palindrome (not case-sensitive)',0Ah, 0Dh,
+				'5. ', 0
+ 00000126 45 58 54 52 41	Menuprompt2 byte 'EXTRA CREDIT', 0
 	   20 43 52 45 44
 	   49 54 00
- 0000014A 3A 20 44 65 74	Menuprompt3 byte ': Determine if the string is a palindrome (case sensitive)', 0Ah, 0Dh,
+ 00000133 3A 20 44 65 74	Menuprompt3 byte ': Determine if the string is a palindrome (case-sensitive)', 0Ah, 0Dh,
 	   65 72 6D 69 6E
 	   65 20 69 66 20
 	   74 68 65 20 73
@@ -218,12 +213,17 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/17/18 15:18:09
 	   20 70 61 6C 69
 	   6E 64 72 6F 6D
 	   65 20 28 63 61
-	   73 65 20 73 65
+	   73 65 2D 73 65
 	   6E 73 69 74 69
 	   76 65 29 0A 0D
-	   37 2E 20 45 78
-	   69 74 3A 20 0A
-	   0D 00
+	   36 2E 20 44 69
+	   73 70 6C 61 79
+	   20 74 68 65 20
+	   73 74 72 69 6E
+	   67 0A 0D 37 2E
+	   20 45 78 69 74
+	   3A 20 0A 0D 00
+				'6. Display the string',0Ah, 0Dh,
 				'7. Exit: ',0Ah, 0Dh, 0h
 
  000000EE			.code
@@ -236,13 +236,13 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/17/18 15:18:09
 
 				; Display the words EXTRA CREDIT in gold
  000000FD  B8 0000000E		mov eax, 14
- 00000102  BA 0000013D R	mov edx, offset menuprompt2
+ 00000102  BA 00000126 R	mov edx, offset menuprompt2
  00000107  E8 00000000 E	call SetTextColor
  0000010C  E8 00000000 E	call WriteString
 
 				; Reset text color and display the rest of the menu
  00000111  B8 00000007		mov eax, 7
- 00000116  BA 0000014A R	mov edx, offset menuprompt3
+ 00000116  BA 00000133 R	mov edx, offset menuprompt3
  0000011B  E8 00000000 E	call settextcolor
  00000120  E8 00000000 E	call writestring
  00000125  C3			ret
@@ -396,6 +396,53 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/17/18 15:18:09
 				; as the character at index (length of string - 1) - n, where n is less than or
 				; equal to (length of string) / 2.
 				;
+				; This is not a case-sensitive palindrome check
+				;
+				; Receives:  
+				; EDX: Offset of string array
+				; EBX: Number of characters in string
+
+ 000001CB			.data
+ 000001CB  00000033 [		theStringUppercase byte maxLength dup(0)
+	    00
+	   ]
+
+ 0000019C			.code
+ 0000019C  56			push esi
+ 0000019D  50			push eax
+ 0000019E  51			push ecx
+
+				; First we put the contents of the string received into
+				; theStringUppercase
+ 0000019F  BE 00000000		clearESI
+ 000001A4			L1:
+ 000001A4  8A 04 16		mov al, [edx + esi]
+ 000001A7  88 86 000001CB R	mov theStringUppercase[esi], al
+ 000001AD  46			inc esi
+ 000001AE  E2 F4		loop L1
+
+				; Then we convert the new string to uppercase
+ 000001B0  59			pop ecx
+ 000001B1  BA 000001CB R	mov edx, OFFSET theStringUppercase
+ 000001B6  E8 FFFFFF83		call option2
+
+				; Then we check the string for palindromeness
+ 000001BB  E8 00000003		call option5
+
+ 000001C0  5A			pop edx
+ 000001C1  5E			pop esi
+ 000001C2  C3			ret
+ 000001C3			option4 endp
+
+ 000001C3			option5 proc
+				; Description:  Checks if a given string is a palindrome.
+				; To be a palindrome, the given string must read the same forwards as it
+				; does backwards. This means that a character at index n must be the same
+				; as the character at index (length of string - 1) - n, where n is less than or
+				; equal to (length of string) / 2.
+				;
+				; This is a case-sensitive palindrome check
+				;
 				; Receives:  
 				; EDX: Offset of string array
 				; EBX: Number of characters in string
@@ -404,154 +451,95 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/17/18 15:18:09
 				;
 				; Requires:  
 
- 000001CB			.data 
- 000001CB 20 69 73 20 61	palMsg byte " is a palindrome.",0
+ 000001FE			.data 
+ 000001FE 54 68 65 20 73	palMsg byte "The string is a palindrome.",0
+	   74 72 69 6E 67
+	   20 69 73 20 61
 	   20 70 61 6C 69
 	   6E 64 72 6F 6D
 	   65 2E 00
- 000001DD 20 69 73 20 6E	notPalMsg byte " is not a palindrome.",0
+ 0000021A 54 68 65 20 73	notPalMsg byte "The string is not a palindrome.",0
+	   74 72 69 6E 67
+	   20 69 73 20 6E
 	   6F 74 20 61 20
 	   70 61 6C 69 6E
 	   64 72 6F 6D 65
 	   2E 00
- 0000019C			.code
- 0000019C  53			push ebx
- 0000019D  56			push esi
- 0000019E  50			push eax
+ 000001C3			.code
+ 000001C3  53			push ebx
+ 000001C4  56			push esi
+ 000001C5  50			push eax
 				; ESI will hold the first index to compare
- 0000019F  BE 00000000		mov esi, 0
+ 000001C6  BE 00000000		mov esi, 0
 				; EBX will hold the second
- 000001A4  0F B6 1B		movzx ebx, byte ptr [ebx]
- 000001A7  4B			dec ebx
+ 000001CB  0F B6 1B		movzx ebx, byte ptr [ebx]
+ 000001CE  4B			dec ebx
 
 				; We're going to loop through as many elements as there
 				; are in the string, 
- 000001A8  51			push ecx
- 000001A9  8B CB		mov ecx, ebx
+ 000001CF  51			push ecx
+ 000001D0  8B CB		mov ecx, ebx
 
 				; Loop through the string, comparing elements at front and back
- 000001AB			L1:
- 000001AB  8A 04 16		mov al, byte ptr [edx + esi]
- 000001AE  3A 04 13		cmp al, byte ptr [edx + ebx]
- 000001B1  75 24		jne notPalindrome
- 000001B3  46			inc esi
- 000001B4  4B			dec ebx
- 000001B5  3B F3		cmp esi, ebx
- 000001B7  73 02		jae palindrome ; If esi (first index) is greater than or equal to 
+ 000001D2			L1:
+ 000001D2  8A 04 16		mov al, byte ptr [edx + esi]
+ 000001D5  3A 04 13		cmp al, byte ptr [edx + ebx]
+ 000001D8  75 1F		jne notPalindrome
+ 000001DA  46			inc esi
+ 000001DB  4B			dec ebx
+ 000001DC  3B F3		cmp esi, ebx
+ 000001DE  73 02		jae palindrome ; If esi (first index) is greater than or equal to 
 				               ; ebx (second index), we're done.
- 000001B9  E2 F0		LOOP L1
+ 000001E0  E2 F0		LOOP L1
 
- 000001BB			palindrome:
+ 000001E2			palindrome:
 				; Write results to screen
- 000001BB  E8 00000000 E	call WriteString
- 000001C0  52			push edx
- 000001C1  BA 000001CB R	mov edx, offset palMsg
- 000001C6  E8 00000000 E	call WriteString
- 000001CB  E8 00000000 E	call crlf
- 000001D0  E8 00000000 E	call waitmsg
- 000001D5  EB 19		jmp complete
+ 000001E2  52			push edx
+ 000001E3  BA 000001FE R	mov edx, offset palMsg
+ 000001E8  E8 00000000 E	call WriteString
+ 000001ED  E8 00000000 E	call crlf
+ 000001F2  E8 00000000 E	call waitmsg
+ 000001F7  EB 15		jmp complete
 
- 000001D7			notPalindrome:
- 000001D7  E8 00000000 E	call WriteString
- 000001DC  BA 000001DD R	mov edx, offset notPalMsg
- 000001E1  E8 00000000 E	call WriteString
- 000001E6  E8 00000000 E	call crlf
- 000001EB  E8 00000000 E	call waitmsg
+ 000001F9			notPalindrome:
+ 000001F9  52			push edx
+ 000001FA  BA 0000021A R	mov edx, offset notPalMsg
+ 000001FF  E8 00000000 E	call WriteString
+ 00000204  E8 00000000 E	call crlf
+ 00000209  E8 00000000 E	call waitmsg
 
- 000001F0			complete:
- 000001F0  5A			pop edx
- 000001F1  59			pop ecx
- 000001F2  58			pop eax
- 000001F3  5E			pop esi
- 000001F4  5B			pop ebx
- 000001F5  C3			ret
- 000001F6			option4 endp
+ 0000020E			complete:
+ 0000020E  5A			pop edx
+ 0000020F  59			pop ecx
+ 00000210  58			pop eax
+ 00000211  5E			pop esi
+ 00000212  5B			pop ebx
+ 00000213  C3			ret
+ 00000214			option5 endp
 
- 000001F6			option5 proc uses edx 
- 000001F6  52		   *	    push   edx
- 000001F3			.data
- 000001F3 54 68 65 20 53	option5prompt byte 'The String is: ', 0h
+ 00000214			option6 proc uses edx 
+ 00000214  52		   *	    push   edx
+ 0000023A			.data
+ 0000023A 54 68 65 20 53	option5prompt byte 'The String is: ', 0h
 	   74 72 69 6E 67
 	   20 69 73 3A 20
 	   00
- 000001F7			.code
- 000001F7  52			push edx
- 000001F8  BA 000001F3 R	mov edx, offset option5prompt
- 000001FD  E8 00000000 E	call writestring
- 00000202  5A			pop edx
- 00000203  E8 00000000 E	call writestring
- 00000208  E8 00000000 E	call crlf
- 0000020D  E8 00000000 E	call waitmsg
+ 00000215			.code
+ 00000215  52			push edx
+ 00000216  BA 0000023A R	mov edx, offset option5prompt
+ 0000021B  E8 00000000 E	call writestring
+ 00000220  5A			pop edx
+ 00000221  E8 00000000 E	call writestring
+ 00000226  E8 00000000 E	call crlf
+ 0000022B  E8 00000000 E	call waitmsg
 				ret
- 00000212  5A		   *	    pop    edx
- 00000213  C3		   *	    ret    00000h
- 00000214			option5 endp
-
- 00000214			option6 proc
- 00000203			.data 
- 00000203 20 69 73 20 61	palMsg2 byte " is a palindrome.",0
-	   20 70 61 6C 69
-	   6E 64 72 6F 6D
-	   65 2E 00
- 00000215 20 69 73 20 6E	notPalMsg2 byte " is not a palindrome.",0
-	   6F 74 20 61 20
-	   70 61 6C 69 6E
-	   64 72 6F 6D 65
-	   2E 00
- 00000214			.code
- 00000214  53			push ebx
- 00000215  56			push esi
- 00000216  50			push eax
-				; ESI will hold the first index to compare
- 00000217  BE 00000000		mov esi, 0
-				; EBX will hold the second
- 0000021C  0F B6 1B		movzx ebx, byte ptr [ebx]
- 0000021F  4B			dec ebx
-
-				; We're going to loop through as many elements as there
-				; are in the string, 
- 00000220  51			push ecx
- 00000221  8B CB		mov ecx, ebx
-
-				; Loop through the string, comparing elements at front and back
- 00000223			L1:
- 00000223  8A 04 16		mov al, byte ptr [edx + esi]
- 00000226  3A 04 13		cmp al, byte ptr [edx + ebx]
- 00000229  75 21		jne notPalindrome
- 0000022B  46			inc esi
- 0000022C  4B			dec ebx
- 0000022D  E2 F4		LOOP L1
-
- 0000022F  59			pop ecx
-
-				; Write results to screen
- 00000230  E8 00000000 E	call WriteString
- 00000235  52			push edx
- 00000236  BA 000001CB R	mov edx, offset palMsg
- 0000023B  E8 00000000 E	call WriteString
- 00000240  E8 00000000 E	call crlf
- 00000245  E8 00000000 E	call waitmsg
- 0000024A  EB 19		jmp complete
-
- 0000024C			notPalindrome:
- 0000024C  E8 00000000 E	call WriteString
- 00000251  BA 000001DD R	mov edx, offset notPalMsg
- 00000256  E8 00000000 E	call WriteString
- 0000025B  E8 00000000 E	call crlf
- 00000260  E8 00000000 E	call waitmsg
-
-
- 00000265			complete:
- 00000265  5A			pop edx
- 00000266  58			pop eax
- 00000267  5E			pop esi
- 00000268  5B			pop ebx
- 00000269  C3			ret
- 0000026A			option6 endp
+ 00000230  5A		   *	    pop    edx
+ 00000231  C3		   *	    ret    00000h
+ 00000232			option6 endp
 
 				END main
 
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/17/18 15:18:09
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/21/18 14:05:33
 inclassMENU.as						     Symbols 2 - 1
 
 
@@ -645,8 +633,8 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000022B Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 0000026A Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 0000024A Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000232 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -776,16 +764,14 @@ option3  . . . . . . . . . . . .	P Near	 0000015B _TEXT	Length= 00000041 Public 
   notLetter  . . . . . . . . . .	L Near	 0000018E _TEXT	
   keepgoing  . . . . . . . . . .	L Near	 00000192 _TEXT	
   complete . . . . . . . . . . .	L Near	 00000195 _TEXT	
-option4  . . . . . . . . . . . .	P Near	 0000019C _TEXT	Length= 0000005A Public STDCALL
-  L1 . . . . . . . . . . . . . .	L Near	 000001AB _TEXT	
-  palindrome . . . . . . . . . .	L Near	 000001BB _TEXT	
-  notPalindrome  . . . . . . . .	L Near	 000001D7 _TEXT	
-  complete . . . . . . . . . . .	L Near	 000001F0 _TEXT	
-option5  . . . . . . . . . . . .	P Near	 000001F6 _TEXT	Length= 0000001E Public STDCALL
-option6  . . . . . . . . . . . .	P Near	 00000214 _TEXT	Length= 00000056 Public STDCALL
-  L1 . . . . . . . . . . . . . .	L Near	 00000223 _TEXT	
-  notPalindrome  . . . . . . . .	L Near	 0000024C _TEXT	
-  complete . . . . . . . . . . .	L Near	 00000265 _TEXT	
+option4  . . . . . . . . . . . .	P Near	 0000019C _TEXT	Length= 00000027 Public STDCALL
+  L1 . . . . . . . . . . . . . .	L Near	 000001A4 _TEXT	
+option5  . . . . . . . . . . . .	P Near	 000001C3 _TEXT	Length= 00000051 Public STDCALL
+  L1 . . . . . . . . . . . . . .	L Near	 000001D2 _TEXT	
+  palindrome . . . . . . . . . .	L Near	 000001E2 _TEXT	
+  notPalindrome  . . . . . . . .	L Near	 000001F9 _TEXT	
+  complete . . . . . . . . . . .	L Near	 0000020E _TEXT	
+option6  . . . . . . . . . . . .	P Near	 00000214 _TEXT	Length= 0000001E Public STDCALL
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -910,8 +896,8 @@ MB_YESNO . . . . . . . . . . . .	Number	 00000004h
 MENU_EVENT . . . . . . . . . . .	Number	 00000008h   
 MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h   
 Menuprompt1  . . . . . . . . . .	Byte	 0000006D _DATA	
-Menuprompt2  . . . . . . . . . .	Byte	 0000013D _DATA	
-Menuprompt3  . . . . . . . . . .	Byte	 0000014A _DATA	
+Menuprompt2  . . . . . . . . . .	Byte	 00000126 _DATA	
+Menuprompt3  . . . . . . . . . .	Byte	 00000133 _DATA	
 MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
 NULL . . . . . . . . . . . . . .	Number	 00000000h   
 NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h   
@@ -1030,14 +1016,13 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 maxLength  . . . . . . . . . . .	Number	 00000033h   
-notPalMsg2 . . . . . . . . . . .	Byte	 00000215 _DATA	
-notPalMsg  . . . . . . . . . . .	Byte	 000001DD _DATA	
+notPalMsg  . . . . . . . . . . .	Byte	 0000021A _DATA	
 option1prompt  . . . . . . . . .	Byte	 00000192 _DATA	
-option5prompt  . . . . . . . . .	Byte	 000001F3 _DATA	
-palMsg2  . . . . . . . . . . . .	Byte	 00000203 _DATA	
-palMsg . . . . . . . . . . . . .	Byte	 000001CB _DATA	
+option5prompt  . . . . . . . . .	Byte	 0000023A _DATA	
+palMsg . . . . . . . . . . . . .	Byte	 000001FE _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
 theStringLen . . . . . . . . . .	Byte	 00000034 _DATA	
+theStringUppercase . . . . . . .	Byte	 000001CB _DATA	
 theString  . . . . . . . . . . .	Byte	 00000001 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
