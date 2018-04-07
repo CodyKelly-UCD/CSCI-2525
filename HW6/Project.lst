@@ -1,22 +1,10 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/21/18 16:40:08
-inclassMENU.as						     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    04/06/18 22:49:35
+	: HW6.as					     Page 1 - 1
 
 
-				TITLE inclassMENU.asm
-				; Author:  Diane Yoha
-				; Date:  7 March 2018
-				; Description: This program presents a menu allowing the user to pick a menu option
-				;              which then performs a given task.
-				; 1.  The user enters a string of less than 50 characters.
-				; 2.  The entered string is converted to lower case.
-				; 3.  The entered string has all non - letter elements removed.
-				; 4.  Is the entered string a palindrome (not case-sensitive).
-				; 5.  Is the string a palindrome (case-sensitive).
-				; 6.  Print the string.
-				; 7.  Exit
-				; ====================================================================================
+				TITLE: HW6.asm
 
-				Include Irvine32.inc 
+				INCLUDE Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
 			      C 
 			      C ;OPTION CASEMAP:NONE		; optional: make identifiers case-sensitive
@@ -35,7 +23,6 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/21/18 16:40:08
 			      C .LIST
 			      C 
 
-				;//Macros
  = mov eax, 0			ClearEAX textequ <mov eax, 0>
  = mov ebx, 0			ClearEBX textequ <mov ebx, 0>
  = mov ecx, 0			ClearECX textequ <mov ecx, 0>
@@ -45,12 +32,38 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/21/18 16:40:08
  = 00000033			maxLength = 51d
 
  00000000			.data
- 00000000 00			UserOption byte 0h
- 00000001  00000033 [		theString byte maxLength dup(0)
+ 00000000  00000033 [		phrase BYTE maxLength DUP(0)
 	    00
 	   ]
- 00000034 00			theStringLen byte 0
- 00000035 59 6F 75 20 68	errormessage byte 'You have entered an invalid option. Please try again.', 0Ah, 0Dh, 0h
+ 00000033 00			phraseLength BYTE 0
+ 00000034 00			phraseSet BYTE 0
+ 00000035 50 6C 65 61 73	phrasePrompt byte 'Please enter a phrase (50 characters or less): ',0
+	   65 20 65 6E 74
+	   65 72 20 61 20
+	   70 68 72 61 73
+	   65 20 28 35 30
+	   20 63 68 61 72
+	   61 63 74 65 72
+	   73 20 6F 72 20
+	   6C 65 73 73 29
+	   3A 20 00
+
+ 00000065  00000033 [		key BYTE maxLength DUP(0)
+	    00
+	   ]
+ 00000098 00			keyLength BYTE 0
+ 00000099 00			keySet BYTE 0
+ 0000009A 50 6C 65 61 73	keyPrompt byte 'Please enter a key (50 characters or less): ',0
+	   65 20 65 6E 74
+	   65 72 20 61 20
+	   6B 65 79 20 28
+	   35 30 20 63 68
+	   61 72 61 63 74
+	   65 72 73 20 6F
+	   72 20 6C 65 73
+	   73 29 3A 20 00
+
+ 000000C7 59 6F 75 20 68	errorMessage byte 'You have entered an invalid option. Please try again.', 0Ah, 0Dh, 0h
 	   61 76 65 20 65
 	   6E 74 65 72 65
 	   64 20 61 6E 20
@@ -62,270 +75,243 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/21/18 16:40:08
 	   79 20 61 67 61
 	   69 6E 2E 0A 0D
 	   00
+ 000000FF 50 6C 65 61 73	invalidMessage byte 'Please enter both a key and a phrase before attempting to encrypt/decrypt.', 0ah, 0dh, 0
+	   65 20 65 6E 74
+	   65 72 20 62 6F
+	   74 68 20 61 20
+	   6B 65 79 20 61
+	   6E 64 20 61 20
+	   70 68 72 61 73
+	   65 20 62 65 66
+	   6F 72 65 20 61
+	   74 74 65 6D 70
+	   74 69 6E 67 20
+	   74 6F 20 65 6E
+	   63 72 79 70 74
+	   2F 64 65 63 72
+	   79 70 74 2E 0A
+	   0D 00
+
+ 0000014C 00			userChoice byte 0
+
  00000000			.code
  00000000			main PROC
+ 00000000  E8 00000252		call ClearRegisters
 
- 00000000  E8 000000CA		call ClearRegisters          ;// clears registers
  00000005			startHere:
- 00000005  E8 000000E4		call DisplayMainMenu
- 0000000A  E8 00000000 E	call readhex
- 0000000F  A2 00000000 R	mov useroption, al
+ 00000005  BA 00000000 R	mov edx, offset phrase
+ 0000000A  A0 00000034 R	mov al, phraseSet
+ 0000000F  E8 00000262		call DisplayMainMenu
+ 00000014  E8 00000000 E	call ReadHex
+ 00000019  A2 0000014C R	mov userChoice, al
 
- 00000014  BA 00000001 R	mov edx, offset theString
- 00000019  B9 00000033		mov ecx, lengthof theString
- 0000001E  BB 00000034 R	mov ebx, offset thestringlen
- 00000023			opt1:
- 00000023  80 3D 00000000 R	cmp useroption, 1
+ 0000001E			opt1:
+				; Get a phrase from the user, then format it
+ 0000001E  80 3D 0000014C R	cmp userChoice, 1
 	   01
- 0000002A  75 0C		jne opt2
- 0000002C  E8 00000000 E	call clrscr
- 00000031  E8 000000F0		call option1
- 00000036  EB CD		jmp starthere
+ 00000025  75 2C		jne opt2
+ 00000027  E8 00000000 E	call clrscr
+ 0000002C  BA 00000000 R	mov edx, offset phrase
+ 00000031  B8 00000035 R	mov eax, offset phrasePrompt
+ 00000036  BB 00000033 R	mov ebx, offset phraseLength
+ 0000003B  E8 000001D3		call EnterString
+ 00000040  E8 000000FB		call ChangeCase
+ 00000045  E8 00000194		call LettersOnly
+ 0000004A  C6 05 00000034 R	mov phraseSet, 1
+	   01
+ 00000051  EB B2		jmp starthere
 
- 00000038			opt2:
- 00000038  80 3D 00000000 R	cmp useroption, 2
+ 00000053			opt2:
+				; Get a key from the user
+ 00000053  80 3D 0000014C R	cmp userChoice, 2
 	   02
- 0000003F  75 0C		jne opt3
- 00000041  E8 00000000 E	call clrscr
- 00000046  E8 000000F3		call option2
- 0000004B  EB B8		jmp starthere
- 0000004D			opt3:
- 0000004D  80 3D 00000000 R	cmp useroption, 3
+ 0000005A  75 22		jne opt3
+ 0000005C  E8 00000000 E	call clrscr
+ 00000061  BA 00000065 R	mov edx, offset key
+ 00000066  B8 0000009A R	mov eax, offset keyPrompt
+ 0000006B  BB 00000098 R	mov ebx, offset keyLength
+ 00000070  E8 0000019E		call EnterString
+ 00000075  C6 05 00000099 R	mov keySet, 1
+	   01
+ 0000007C  EB 87		jmp startHere
+
+ 0000007E			opt3:
+				; Encrypt phrase
+ 0000007E  80 3D 0000014C R	cmp userChoice, 3
 	   03
- 00000054  75 0C		jne opt4
- 00000056  E8 00000000 E	call clrscr
- 0000005B  E8 000000FB		call option3
- 00000060  EB A3		jmp starthere
- 00000062			opt4:
- 00000062  80 3D 00000000 R	cmp useroption, 4
+ 00000085  75 3D		jne opt4
+
+				; If either the phrase or key has not been set, this option is invalid
+ 00000087  80 3D 00000034 R	cmp phraseSet, 0
+	   00
+ 0000008E  0F 84 0000008F	je invalid
+ 00000094  80 3D 00000099 R	cmp keySet, 0
+	   00
+ 0000009B  0F 84 00000082	je invalid
+ 000000A1  BA 00000000 R	mov edx, offset phrase
+ 000000A6  B8 00000065 R	mov eax, offset key
+ 000000AB  0F B6 0D		movzx ecx, [phraseLength]
+	   00000033 R
+ 000000B2  8A 1D 00000098 R	mov bl, [keyLength]
+ 000000B8  B7 01		mov bh, 1
+ 000000BA  E8 000000A3		call EncryptDecrypt
+ 000000BF  E9 FFFFFF41		jmp startHere
+
+ 000000C4			opt4:
+				; Decrypt phrase
+ 000000C4  80 3D 0000014C R	cmp userChoice, 4
 	   04
- 00000069  75 0C		jne opt5
- 0000006B  E8 00000000 E	call clrscr
- 00000070  E8 00000127		call option4
- 00000075  EB 8E		jmp starthere
- 00000077			opt5:
- 00000077  80 3D 00000000 R	cmp useroption, 5
+ 000000CB  75 35		jne opt5
+
+				; If either the phrase or key has not been set, this option is invalid
+ 000000CD  80 3D 00000034 R	cmp phraseSet, 0
+	   00
+ 000000D4  74 4D		je invalid
+ 000000D6  80 3D 00000099 R	cmp keySet, 0
+	   00
+ 000000DD  74 44		je invalid
+ 000000DF  BA 00000000 R	mov edx, offset phrase
+ 000000E4  B8 00000065 R	mov eax, offset key
+ 000000E9  0F B6 0D		movzx ecx, [phraseLength]
+	   00000033 R
+ 000000F0  8A 1D 00000098 R	mov bl, [keyLength]
+ 000000F6  B7 00		mov bh, 0
+ 000000F8  E8 00000065		call EncryptDecrypt
+ 000000FD  E9 FFFFFF03		jmp startHere
+
+ 00000102			opt5:
+ 00000102  80 3D 0000014C R	cmp userChoice, 5
 	   05
- 0000007E  75 0F		jne opt6
- 00000080  E8 00000000 E	call clrscr
- 00000085  E8 00000139		call option5
- 0000008A  E9 FFFFFF76		jmp starthere
- 0000008F			opt6:
- 0000008F  80 3D 00000000 R	cmp useroption, 6
-	   06
- 00000096  75 0F		jne opt7
- 00000098  E8 00000000 E	call clrscr
- 0000009D  E8 00000172		call option6
- 000000A2  E9 FFFFFF5E		jmp starthere
- 000000A7			opt7:
- 000000A7  80 3D 00000000 R	cmp useroption, 7
-	   07
- 000000AE  75 02		jne oops
- 000000B0  EB 16		jmp quitit
- 000000B2			oops:
- 000000B2  52			push edx
- 000000B3  BA 00000035 R	mov edx, offset errormessage
- 000000B8  E8 00000000 E	call writestring
- 000000BD  E8 00000000 E	call waitmsg
- 000000C2  5A			pop edx
- 000000C3  E9 FFFFFF3D		jmp starthere
+ 00000109  75 02		jne oops
+ 0000010B  EB 2C		jmp quit
 
- 000000C8			quitit:
-				exit
- 000000C8  6A 00	   *	    push   +000000000h
- 000000CA  E8 00000000 E   *	    call   ExitProcess
- 000000CF			main ENDP
-				;// Procedures
-				;// ===============================================================
- 000000CF			ClearRegisters Proc
-				;// Description:  Clears the registers EAX, EBX, ECX, EDX, ESI, EDI
-				;// Requires:  Nothing
-				;// Returns:  Nothing, but all registers will be cleared.
+ 0000010D			oops:
+ 0000010D  52			push edx
+ 0000010E  BA 000000C7 R	mov edx, offset errormessage
+ 00000113  E8 00000000 E	call writestring
+ 00000118  E8 00000000 E	call waitmsg
+ 0000011D  5A			pop edx
+ 0000011E  E9 FFFFFEE2		jmp starthere
 
- 000000CF  B8 00000000		cleareax
- 000000D4  BB 00000000		clearebx
- 000000D9  B9 00000000		clearecx
- 000000DE  BA 00000000		clearedx
- 000000E3  BE 00000000		clearesi
- 000000E8  BF 00000000		clearedi
-
- 000000ED  C3			ret
- 000000EE			ClearRegisters ENDP
-
- 000000EE			DisplayMainMenu proc
-				;// Description:  Displays the main menu
-				;// Requires:  Nothing
-				;// Returns:  Nothing
-
- 0000006D			.data
- 0000006D 4D 41 49 4E 20	Menuprompt1 byte 'MAIN MENU', 0Ah, 0Dh,
-	   4D 45 4E 55 0A
-	   0D 3D 3D 3D 3D
-	   3D 3D 3D 3D 3D
-	   3D 0A 0D 31 2E
-	   20 45 6E 74 65
-	   72 20 61 20 53
-	   74 72 69 6E 67
-	   0A 0D 32 2E 20
-	   43 6F 6E 76 65
-	   72 74 20 61 6C
-	   6C 20 65 6C 65
-	   6D 65 6E 74 73
-	   20 74 6F 20 6C
-	   6F 77 65 72 20
-	   63 61 73 65 0A
-	   0D 33 2E 20 52
-	   65 6D 6F 76 65
-	   20 61 6C 6C 20
-	   6E 6F 6E 2D 6C
-	   65 74 74 65 72
-	   20 65 6C 65 6D
-	   65 6E 74 73 0A
-	   0D 34 2E 20 44
-	   65 74 65 72 6D
-	   69 6E 65 20 69
-	   66 20 74 68 65
-	   20 73 74 72 69
-	   6E 67 20 69 73
-	   20 61 20 70 61
-	   6C 69 6E 64 72
-	   6F 6D 65 20 28
-	   6E 6F 74 20 63
-	   61 73 65 2D 73
-	   65 6E 73 69 74
-	   69 76 65 29 0A
-	   0D 35 2E 20 00
-				'==========', 0Ah, 0Dh,
-				'1. Enter a String', 0Ah, 0Dh,
-				'2. Convert all elements to lower case',0Ah, 0Dh,
-				'3. Remove all non-letter elements',0Ah, 0Dh,
-				'4. Determine if the string is a palindrome (not case-sensitive)',0Ah, 0Dh,
-				'5. ', 0
- 00000126 45 58 54 52 41	Menuprompt2 byte 'EXTRA CREDIT', 0
-	   20 43 52 45 44
-	   49 54 00
- 00000133 3A 20 44 65 74	Menuprompt3 byte ': Determine if the string is a palindrome (case-sensitive)', 0Ah, 0Dh,
-	   65 72 6D 69 6E
-	   65 20 69 66 20
-	   74 68 65 20 73
-	   74 72 69 6E 67
-	   20 69 73 20 61
-	   20 70 61 6C 69
-	   6E 64 72 6F 6D
-	   65 20 28 63 61
-	   73 65 2D 73 65
-	   6E 73 69 74 69
-	   76 65 29 0A 0D
-	   36 2E 20 44 69
-	   73 70 6C 61 79
-	   20 74 68 65 20
-	   73 74 72 69 6E
-	   67 0A 0D 37 2E
-	   20 45 78 69 74
-	   3A 20 0A 0D 00
-				'6. Display the string',0Ah, 0Dh,
-				'7. Exit: ',0Ah, 0Dh, 0h
-
- 000000EE			.code
-				; Clear screen
- 000000EE  E8 00000000 E	call clrscr
-
-				; Display first part of main menu
- 000000F3  BA 0000006D R	mov edx, offset menuprompt1
- 000000F8  E8 00000000 E	call WriteString
-
-				; Display the words EXTRA CREDIT in gold
- 000000FD  B8 0000000E		mov eax, 14
- 00000102  BA 00000126 R	mov edx, offset menuprompt2
- 00000107  E8 00000000 E	call SetTextColor
- 0000010C  E8 00000000 E	call WriteString
-
-				; Reset text color and display the rest of the menu
- 00000111  B8 00000007		mov eax, 7
- 00000116  BA 00000133 R	mov edx, offset menuprompt3
- 0000011B  E8 00000000 E	call settextcolor
- 00000120  E8 00000000 E	call writestring
- 00000125  C3			ret
- 00000126			DisplayMainMenu endp
-
- 00000126			option1 proc uses edx ecx
-				; Description:  Receives a string from the user
-				;
-				; Receives:
-				; EDX: The offset of the byte array to store the string in.
-				;      Must have 50 elements.
-				;
-				; Returns: 
-				; EDX: string from user
-				; EBX: length of string
-				;
-				; Requires:
-				; Array must have 50 elements
-
- 00000126  52		   *	    push   edx
- 00000127  51		   *	    push   ecx
- 00000192			.data
- 00000192 50 6C 65 61 73	option1prompt byte 'Please enter a string of characters (50 or less): ', 0Ah, 0Dh, '--->', 0h
-	   65 20 65 6E 74
-	   65 72 20 61 20
-	   73 74 72 69 6E
-	   67 20 6F 66 20
-	   63 68 61 72 61
-	   63 74 65 72 73
-	   20 28 35 30 20
-	   6F 72 20 6C 65
-	   73 73 29 3A 20
-	   0A 0D 2D 2D 2D
-	   3E 00
-
- 00000128			.code
- 00000128  52			push edx       ; saving the address of the string
- 00000129  BA 00000192 R	mov edx, offset option1prompt
- 0000012E  E8 00000000 E	call writestring
+ 00000123			invalid:
+ 00000123  52			push edx
+ 00000124  BA 000000FF R	mov edx, offset invalidmessage
+ 00000129  E8 00000000 E	call writestring
+ 0000012E  E8 00000000 E	call waitmsg
  00000133  5A			pop edx
+ 00000134  E9 FFFFFECC		jmp starthere
 
-				; add procedure to clear string (loop through and place zeros)
+ 00000139			quit:
+				exit
+ 00000139  6A 00	   *	    push   +000000000h
+ 0000013B  E8 00000000 E   *	    call   ExitProcess
+ 00000140			main ENDP
 
- 00000134  E8 00000000 E	call readstring
- 00000139  88 03		mov byte ptr [ebx], al     ;//length of user entered string, now in thestringlen
-
-				ret
- 0000013B  59		   *	    pop    ecx
- 0000013C  5A		   *	    pop    edx
- 0000013D  C3		   *	    ret    00000h
- 0000013E			option1 endp
-
- 0000013E			option2 proc uses edx ebx
-				; Description:  Converts all uppercase letters in string to lowercase
+ 00000140			ChangeCase proc
+				; Description:  Converts all lowercase letters in string to uppercase
 				;
 				; Receives:
 				; EDX: Offset of string array
-				; ECX: Length of string array
+				; EBX: Length of string array
 				;
 				; Returns:  
 				; EDX: String array with converted letters, if any
+ 00000140  56			push esi
+ 00000141  50			push eax
+ 00000142  51			push ecx
+ 00000143  BE 00000000		clearESI
+ 00000148  0F B6 0B		movzx ecx, byte ptr [ebx]
 
- 0000013E  52		   *	    push   edx
- 0000013F  53		   *	    push   ebx
- 00000140  BE 00000000		clearESI
- 00000145			L2:
- 00000145  8A 04 16		mov al, byte ptr [edx+esi]
- 00000148  3C 41		cmp al, 41h
- 0000014A  72 09		jb keepgoing
- 0000014C  3C 5A		cmp al, 5ah
- 0000014E  77 05		ja keepgoing
- 00000150  0C 20		or al, 20h     ;//could use add al, 20h
- 00000152  88 04 16		mov byte ptr [edx+esi], al
- 00000155			keepgoing:
- 00000155  46			inc esi
- 00000156  E2 ED		loop L2
-				ret
- 00000158  5B		   *	    pop    ebx
- 00000159  5A		   *	    pop    edx
- 0000015A  C3		   *	    ret    00000h
- 0000015B			option2 endp
+ 0000014B			letterLoop:
+ 0000014B  8A 04 16		mov al, byte ptr [edx+esi]
+ 0000014E  3C 61		cmp al, 'a'
+ 00000150  72 09		jb keepgoing
+ 00000152  3C 7A		cmp al, 'z'
+ 00000154  77 05		ja keepgoing
+ 00000156  2C 20		sub al, 20h
+ 00000158  88 04 16		mov byte ptr [edx+esi], al
+ 0000015B			keepgoing:
+ 0000015B  46			inc esi
+ 0000015C  E2 ED		loop letterLoop
 
- 0000015B			option3 proc
+ 0000015E  59			pop ecx
+ 0000015F  58			pop eax
+ 00000160  5E			pop esi
+ 00000161  C3			ret
+ 00000162			ChangeCase endp
+
+ 00000162			EncryptDecrypt proc
+				; Description:
+				; Shifts characters in a phrase an amount specified in a key
+				; Or alerts the user if no key is set.
+				;
+				; Receives:
+				; EDX: Offset of phrase to shift
+				; EAX: Offset of key to use
+				; ECX: Length of phrase
+				; BL: Length of key
+				; BH: 1 if Encyrpting, 0 if decrypting
+				;
+				; Returns:
+				; EDX: Encrypted phrase
+ 0000014D			.data
+ 0000014D 00			theKeyLength byte 0
+ 0000014E 00			keyIndex byte 0
+ 0000014F 00			phraseIndex byte 0
+ 00000150 00			currentLetter byte 0
+ 00000151 00			encrypt byte 0
+ 00000162			.code
+ 00000162  C6 05 0000014E R	mov keyIndex, 0
+	   00
+ 00000169  C6 05 0000014F R	mov phraseIndex, 0
+	   00
+ 00000170  56			push esi
+ 00000171  88 1D 0000014D R	mov theKeyLength, bl
+ 00000177  FE 0D 0000014D R	dec theKeyLength
+ 0000017D  88 3D 00000151 R	mov encrypt, bh
+ 00000183  BB 00000000		mov ebx, 0
+
+ 00000188			eLoop:
+				; Get the current key letter
+ 00000188  0F B6 35		movzx esi, [keyIndex]
+	   0000014E R
+ 0000018F  8A 1C 06		mov bl, [eax+esi]
+ 00000192  50			push eax
+				; Store key letter
+ 00000193  8A C3		mov al, bl
+				; Get key letter modulo 26d
+ 00000195  B4 1A		mov ah, 26
+ 00000197  E8 00000133		call Modulo
+				; Shift current phrase letter by modulus result
+ 0000019C  0F B6 35		movzx esi, [phraseIndex]
+	   0000014F R
+ 000001A3  8A 04 16		mov al, [edx + esi]
+				; Check to see if we're encrypting
+ 000001A6  80 3D 00000151 R	cmp encrypt, 0 
+	   00
+ 000001AD  75 02		jne doShift
+				; If we're decrypting, make shift amount negative
+ 000001AF  F6 DC		neg ah
+ 000001B1			doShift:
+ 000001B1  E8 0000010A		call CipherShiftChar
+				; Store result of shift back into phrase string
+ 000001B6  88 04 16		mov [edx + esi], al
+				; Now we'll check if we have to wrap around to beginning of key
+ 000001B9  A0 0000014E R	mov al, keyIndex
+ 000001BE  3A 05 0000014D R	cmp al, theKeyLength
+ 000001C4  75 07		jne continue
+ 000001C6  C6 05 0000014E R	mov keyIndex, -1 ; Reset keyIndex
+	   FF
+ 000001CD			continue:
+ 000001CD  FE 05 0000014E R	inc keyIndex
+ 000001D3  FE 05 0000014F R	inc phraseIndex
+ 000001D9  58			pop eax
+ 000001DA  E2 AC		loop eloop
+ 000001DC  5E			pop esi
+ 000001DD  C3			ret
+ 000001DE			EncryptDecrypt endp
+
+ 000001DE			LettersOnly proc
 				; Description:  Removes all non-letter characters from string
 				;
 				; Receives:
@@ -334,213 +320,308 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/21/18 16:40:08
 				; Returns:  
 				; EDX: offset of string array
 				; EBX: new length of string
- 0000015B  50			push eax
- 0000015C  56			push esi
- 0000015D  52			push edx
- 0000015E  53			push ebx
- 0000015F  BE 00000000		clearESI
- 00000164  B8 00000000		clearEAX
+ 000001DE  50			push eax
+ 000001DF  56			push esi
+ 000001E0  52			push edx
+ 000001E1  53			push ebx
+ 000001E2  BE 00000000		clearESI
+ 000001E7  B8 00000000		clearEAX
 
- 00000169			L1:
+ 000001EC			L1:
 				; Move current element into al
- 00000169  8A 04 16		mov al, byte ptr [edx + esi]
+ 000001EC  8A 04 16		mov al, byte ptr [edx + esi]
 
 				; Test if current element is NOT a capital letter
- 0000016C  3C 41		cmp al, 41h
- 0000016E  72 1E		jb notLetter
- 00000170  3C 5B		cmp al, 5bh
- 00000172  72 0C		jb letter
+ 000001EF  3C 41		cmp al, 41h
+ 000001F1  72 12		jb notLetter
+ 000001F3  3C 5B		cmp al, 5bh
+ 000001F5  72 00		jb letter
 
-				; If the element isn't a capital letter, it may be a lowercase letter
- 00000174  3C 61		cmp al, 61h
- 00000176  72 16		jb notLetter
- 00000178  3C 7B		cmp al, 7bh
- 0000017A  72 04		jb letter
- 0000017C  3C 75		cmp al, 75h
- 0000017E  77 0E		ja notletter
-
- 00000180			letter:
+ 000001F7			letter:
 				; If current element IS letter:
 				; Move element into element at ah
- 00000180  0F B6 DC		movzx ebx, ah
+ 000001F7  0F B6 DC		movzx ebx, ah
 				; Make current element 0
- 00000183  C6 04 16 00		mov byte ptr [edx + esi], 0
+ 000001FA  C6 04 16 00		mov byte ptr [edx + esi], 0
 				; Move letter into new position
- 00000187  88 04 13		mov byte ptr [edx + ebx], al
+ 000001FE  88 04 13		mov byte ptr [edx + ebx], al
 				; Increment ah so we get a new valid position
- 0000018A  FE C4		inc ah
- 0000018C  EB 04		jmp keepgoing
+ 00000201  FE C4		inc ah
+ 00000203  EB 04		jmp keepgoing
 
- 0000018E			notLetter:
+ 00000205			notLetter:
 				; If current element is NOT a letter:
 				; Make current element 0
- 0000018E  C6 04 16 00		mov byte ptr [edx + esi], 0
+ 00000205  C6 04 16 00		mov byte ptr [edx + esi], 0
 
- 00000192			keepgoing:
- 00000192  46			inc esi
- 00000193  E2 D4		LOOP L1
+ 00000209			keepgoing:
+ 00000209  46			inc esi
+ 0000020A  E2 E0		LOOP L1
 
- 00000195			complete:
- 00000195  5B			pop ebx
- 00000196  88 23		mov byte ptr [ebx], ah  ; Return length of string
- 00000198  5A			pop edx
- 00000199  5E			pop esi
- 0000019A  58			pop eax
- 0000019B  C3			ret
- 0000019C			option3 endp
+ 0000020C			complete:
+ 0000020C  5B			pop ebx
+ 0000020D  88 23		mov byte ptr [ebx], ah  ; Return length of string
+ 0000020F  5A			pop edx
+ 00000210  5E			pop esi
+ 00000211  58			pop eax
+ 00000212  C3			ret
+ 00000213			LettersOnly endp
 
- 0000019C			option4 proc
-				; Description:  Checks if a given string is a palindrome.
-				; To be a palindrome, the given string must read the same forwards as it
-				; does backwards. This means that a character at index n must be the same
-				; as the character at index (length of string - 1) - n, where n is less than or
-				; equal to (length of string) / 2.
+ 00000213			EnterString proc
+				; Description:  
+				; Displays a prompt and receives a string from the user
 				;
-				; This is not a case-sensitive palindrome check
+				; Receives:
+				; EAX: The offset of the prompt string
+				; EDX: The offset of the byte array to store the string in.
+				;      Must have 50 elements.
+				; EBX: The offset of the length of string
 				;
-				; Receives:  
-				; EDX: Offset of string array
-				; EBX: Number of characters in string
-
- 000001CB			.data
- 000001CB  00000033 [		theStringUppercase byte maxLength dup(0)
-	    00
-	   ]
-
- 0000019C			.code
- 0000019C  56			push esi
- 0000019D  50			push eax
- 0000019E  51			push ecx
-
-				; First we put the contents of the string received into
-				; theStringUppercase
- 0000019F  BE 00000000		clearESI
- 000001A4			L1:
- 000001A4  8A 04 16		mov al, [edx + esi]
- 000001A7  88 86 000001CB R	mov theStringUppercase[esi], al
- 000001AD  46			inc esi
- 000001AE  E2 F4		loop L1
-
-				; Then we convert the new string to uppercase
- 000001B0  59			pop ecx
- 000001B1  BA 000001CB R	mov edx, OFFSET theStringUppercase
- 000001B6  E8 FFFFFF83		call option2
-
-				; Then we check the string for palindromeness
- 000001BB  E8 00000003		call option5
-
- 000001C0  5A			pop edx
- 000001C1  5E			pop esi
- 000001C2  C3			ret
- 000001C3			option4 endp
-
- 000001C3			option5 proc
-				; Description:  Checks if a given string is a palindrome.
-				; To be a palindrome, the given string must read the same forwards as it
-				; does backwards. This means that a character at index n must be the same
-				; as the character at index (length of string - 1) - n, where n is less than or
-				; equal to (length of string) / 2.
+				; Returns: 
+				; EDX: string from user
+				; EBX: length of string
 				;
-				; This is a case-sensitive palindrome check
-				;
-				; Receives:  
-				; EDX: Offset of string array
-				; EBX: Number of characters in string
-				;
-				; Returns:  
+				; Requires:
+				; Array must have 50 elements
+ 00000152			.data
+ 00000152 59 6F 75 20 68	errorMsg byte "You haven't entered anything, please try again.",0
+	   61 76 65 6E 27
+	   74 20 65 6E 74
+	   65 72 65 64 20
+	   61 6E 79 74 68
+	   69 6E 67 2C 20
+	   70 6C 65 61 73
+	   65 20 74 72 79
+	   20 61 67 61 69
+	   6E 2E 00
+ 00000213			.code
+ 00000213			start:
+ 00000213  E8 000000F8		call ClearString
+ 00000218  50			push eax
+ 00000219  52			push edx            ; saving the address of the string
+ 0000021A  92			xchg edx, eax       ; flip string offsets
+ 0000021B  E8 00000000 E	call writestring
+ 00000220  92			xchg edx, eax       ; flip them back
+ 00000221  B9 00000033		mov ecx, maxLength
+ 00000226  E8 00000000 E	call readstring
+ 0000022B  88 03		mov byte ptr [ebx], al     ;//length of user entered string, now in thestringlen
+ 0000022D  80 3B 00		cmp byte ptr [ebx], 0
+ 00000230  75 22		jne continue
+ 00000232  E8 00000000 E	call clrscr
+ 00000237  BA 00000152 R	mov edx, offset errorMsg
+ 0000023C  E8 00000000 E	call writestring
+ 00000241  E8 00000000 E	call crlf
+ 00000246  E8 00000000 E	call waitmsg
+ 0000024B  E8 00000000 E	call clrscr
+ 00000250  5A			pop edx
+ 00000251  58			pop eax
+ 00000252  EB BF		jmp start
+ 00000254			continue:
+ 00000254  5A			pop edx
+ 00000255  58			pop eax
+ 00000256  C3			ret
+ 00000257			EnterString endp
+
+ 00000257			ClearRegisters Proc
+				; Description:  
+				; Clears the registers EAX, EBX, ECX, EDX, ESI, EDI
 				;
 				; Requires:  
+				; Nothing
+				;
+				; Returns:  
+				; Nothing, but all registers will be cleared.
 
- 000001FE			.data 
- 000001FE 54 68 65 20 73	palMsg byte "The string is a palindrome.",0
-	   74 72 69 6E 67
-	   20 69 73 20 61
-	   20 70 61 6C 69
-	   6E 64 72 6F 6D
-	   65 2E 00
- 0000021A 54 68 65 20 73	notPalMsg byte "The string is not a palindrome.",0
-	   74 72 69 6E 67
-	   20 69 73 20 6E
-	   6F 74 20 61 20
-	   70 61 6C 69 6E
-	   64 72 6F 6D 65
-	   2E 00
- 000001C3			.code
- 000001C3  53			push ebx
- 000001C4  56			push esi
- 000001C5  50			push eax
-				; ESI will hold the first index to compare
- 000001C6  BE 00000000		mov esi, 0
-				; EBX will hold the second
- 000001CB  0F B6 1B		movzx ebx, byte ptr [ebx]
- 000001CE  4B			dec ebx
+ 00000257  B8 00000000		cleareax
+ 0000025C  BB 00000000		clearebx
+ 00000261  B9 00000000		clearecx
+ 00000266  BA 00000000		clearedx
+ 0000026B  BE 00000000		clearesi
+ 00000270  BF 00000000		clearedi
 
-				; We're going to loop through as many elements as there
-				; are in the string, 
- 000001CF  51			push ecx
- 000001D0  8B CB		mov ecx, ebx
+ 00000275  C3			ret
+ 00000276			ClearRegisters ENDP
 
-				; Loop through the string, comparing elements at front and back
- 000001D2			L1:
- 000001D2  8A 04 16		mov al, byte ptr [edx + esi]
- 000001D5  3A 04 13		cmp al, byte ptr [edx + ebx]
- 000001D8  75 1F		jne notPalindrome
- 000001DA  46			inc esi
- 000001DB  4B			dec ebx
- 000001DC  3B F3		cmp esi, ebx
- 000001DE  73 02		jae palindrome ; If esi (first index) is greater than or equal to 
-				               ; ebx (second index), we're done.
- 000001E0  E2 F0		LOOP L1
+ 00000276			DisplayMainMenu proc
+				; Description:  
+				; Displays the main menu
+				; 
+				; Receives: 
+				; AL: 1 if phrase is entered already, 0 if no phrase has been entered.
+				; EDX: Offset of phrase
+				; 
+				; Returns:  Nothing
 
- 000001E2			palindrome:
-				; Write results to screen
- 000001E2  52			push edx
- 000001E3  BA 000001FE R	mov edx, offset palMsg
- 000001E8  E8 00000000 E	call WriteString
- 000001ED  E8 00000000 E	call crlf
- 000001F2  E8 00000000 E	call waitmsg
- 000001F7  EB 15		jmp complete
+ 00000182			.data
+ 00000182 4D 41 49 4E 20	Menuprompt1 byte 'MAIN MENU', 0Ah, 0Dh,0
+	   4D 45 4E 55 0A
+	   0D 00
+ 0000018E 31 2E 20 45 6E	Menuprompt2 byte '1. Enter a phrase', 0Ah, 0Dh,
+	   74 65 72 20 61
+	   20 70 68 72 61
+	   73 65 0A 0D 32
+	   2E 20 45 6E 74
+	   65 72 20 61 20
+	   6B 65 79 0A 0D
+	   33 2E 20 45 6E
+	   63 72 79 70 74
+	   20 70 68 72 61
+	   73 65 0A 0D 34
+	   2E 20 44 65 63
+	   72 79 70 74 20
+	   70 68 72 61 73
+	   65 0A 0D 35 2E
+	   20 45 78 69 74
+	   20 0A 0D 00
+				'2. Enter a key',0Ah, 0Dh,
+				'3. Encrypt phrase',0Ah, 0Dh,
+				'4. Decrypt phrase',0Ah, 0Dh,
+				'5. Exit ',0Ah, 0Dh, 0h
+ 000001E2 43 75 72 72 65	phraseDisplay1 byte 'Current phrase: ',0
+	   6E 74 20 70 68
+	   72 61 73 65 3A
+	   20 00
 
- 000001F9			notPalindrome:
- 000001F9  52			push edx
- 000001FA  BA 0000021A R	mov edx, offset notPalMsg
- 000001FF  E8 00000000 E	call WriteString
- 00000204  E8 00000000 E	call crlf
- 00000209  E8 00000000 E	call waitmsg
+ 000001F3 3D 3D 3D 3D 3D	seperator byte '==========', 0Ah, 0Dh, 0
+	   3D 3D 3D 3D 3D
+	   0A 0D 00
+ 00000276			.code
+ 00000276  E8 00000000 E	call clrscr
+ 0000027B  52			push edx
 
- 0000020E			complete:
- 0000020E  5A			pop edx
- 0000020F  59			pop ecx
- 00000210  58			pop eax
- 00000211  5E			pop esi
- 00000212  5B			pop ebx
- 00000213  C3			ret
- 00000214			option5 endp
+				; Display main menu
+ 0000027C  BA 00000182 R	mov edx, offset menuprompt1
+ 00000281  E8 00000000 E	call WriteString
+ 00000286  BA 000001F3 R	mov edx, offset seperator
+ 0000028B  E8 00000000 E	call writeString
 
- 00000214			option6 proc uses edx 
- 00000214  52		   *	    push   edx
- 0000023A			.data
- 0000023A 54 68 65 20 53	option5prompt byte 'The String is: ', 0h
-	   74 72 69 6E 67
-	   20 69 73 3A 20
-	   00
- 00000215			.code
- 00000215  52			push edx
- 00000216  BA 0000023A R	mov edx, offset option5prompt
- 0000021B  E8 00000000 E	call writestring
- 00000220  5A			pop edx
- 00000221  E8 00000000 E	call writestring
- 00000226  E8 00000000 E	call crlf
- 0000022B  E8 00000000 E	call waitmsg
-				ret
- 00000230  5A		   *	    pop    edx
- 00000231  C3		   *	    ret    00000h
- 00000232			option6 endp
+				; If there's a phrase, display it
+ 00000290  3C 01		cmp al, 1
+ 00000292  75 20		jne continue
+ 00000294  BA 000001E2 R	mov edx, offset phrasedisplay1
+ 00000299  E8 00000000 E	call WriteString
+ 0000029E  5A			pop edx
+ 0000029F  E8 0000003A		call Printit
+ 000002A4  52			push edx
+ 000002A5  E8 00000000 E	call crlf
+ 000002AA  BA 000001F3 R	mov edx, offset seperator
+ 000002AF  E8 00000000 E	call WriteString
+
+ 000002B4			continue:
+ 000002B4  BA 0000018E R	mov edx, offset menuprompt2
+ 000002B9  E8 00000000 E	call WriteString
+ 000002BE  5A			pop edx
+ 000002BF  C3			ret
+ 000002C0			DisplayMainMenu endp
+
+ 000002C0			CipherShiftChar proc
+				; Description:
+				; Shifts a character through the alphabet by a pre-determined
+				; number of spaces. Wraps around to beginning if necessary.
+				; To shift a character to the left, pass in a negative number
+				; To shift a character to the right, pass in a positive number
+				;
+				; Receives:
+				; AH: Number of places to shift character.
+				; AL: Character to shift.
+				; 
+				; Returns:
+				; AL: Shifted character
+ 000002C0  02 C4		add al, ah
+ 000002C2  3C 40		cmp al, '@'
+ 000002C4  77 02		ja next
+ 000002C6  04 1A		add al, 1ah
+ 000002C8			next:
+ 000002C8  3C 5B		cmp al, '['
+ 000002CA  72 02		jb continue
+ 000002CC  2C 1A		sub al, 1ah
+ 000002CE			continue:
+ 000002CE  C3			ret
+ 000002CF			CipherShiftChar endp
+
+ 000002CF			Modulo proc
+				; Description:
+				; Performs a Modulo operation on an integer
+				;
+				; Receives:
+				; AH: Divisor
+				; AL: Dividend
+				;
+				; Returns: 
+				; AH: Result
+ 00000200			.data
+ 00000200 00			divisor BYTE 0
+ 000002CF			.code
+ 000002CF  88 25 00000200 R	mov divisor, ah
+ 000002D5  B4 00		mov ah, 0
+ 000002D7  F6 35 00000200 R	div divisor
+ 000002DD  C3			ret
+ 000002DE			Modulo endp
+
+ 000002DE			Printit proc
+				; Description:
+				; Outputs a string in the format ***** ***** *****,
+				; where each * represent a subsequent character in the
+				; string.
+				;
+				; Receives:
+				; EDX: Offset of string
+				; 
+				; Returns:
+				; Nothing
+				; 
+				; Requires:
+				; String length must be 50
+ 000002DE  56			push esi
+ 000002DF  51			push ecx
+ 000002E0  66| 50		push ax         ; AL will contain current character
+				                ; AH will contain a counter used to determine when to output a space character
+ 000002E2  BE 00000000		mov esi, 0
+ 000002E7  66| B8 0000		mov ax, 0
+ 000002EB  B9 00000032		mov ecx, 50
+ 000002F0			printLoop:
+ 000002F0  8A 04 16		mov al, [edx + esi]
+ 000002F3  E8 00000000 E	call WriteChar
+ 000002F8  FE C4		inc ah
+ 000002FA  80 FC 05		cmp ah, 5       ; If counter is 4, we output a null character and reset counter
+ 000002FD  75 09		jne continue
+ 000002FF  66| B8 0000		mov ax, 0       ; Set both counter and character to output to '0'
+ 00000303  E8 00000000 E	call WriteChar
+ 00000308			continue:
+ 00000308  46			inc esi
+ 00000309  E2 E5		loop printLoop
+ 0000030B  66| 58		pop ax
+ 0000030D  59			pop ecx
+ 0000030E  5E			pop esi
+ 0000030F  C3			ret
+ 00000310			Printit endp
+
+ 00000310			ClearString proc
+				; Description:
+				; Clears a string
+				; 
+				; Receives:
+				; EDX: Offset of string
+				; EBX: Offset of size of string
+				;
+				; Requires:
+				; String must have max length of 50
+ 00000310  51			push ecx
+ 00000311  56			push esi
+ 00000312  BE 00000000		mov esi, 0
+ 00000317  B9 00000032		mov ecx, 50
+ 0000031C			clearLoop:
+ 0000031C  C6 04 16 00		mov byte ptr [edx + esi], 0
+ 00000320  46			inc esi
+ 00000321  E2 F9		loop clearLoop
+ 00000323  5E			pop esi
+ 00000324  59			pop ecx
+ 00000325  C3			ret
+ 00000326			ClearString endp
 
 				END main
-
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    03/21/18 16:40:08
-inclassMENU.as						     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    04/06/18 22:49:35
+	: HW6.as					     Symbols 2 - 1
 
 
 
@@ -633,15 +714,23 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000024A Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 00000232 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000201 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000326 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
-ClearRegisters . . . . . . . . .	P Near	 000000CF _TEXT	Length= 0000001F Public STDCALL
+ChangeCase . . . . . . . . . . .	P Near	 00000140 _TEXT	Length= 00000022 Public STDCALL
+  letterLoop . . . . . . . . . .	L Near	 0000014B _TEXT	
+  keepgoing  . . . . . . . . . .	L Near	 0000015B _TEXT	
+CipherShiftChar  . . . . . . . .	P Near	 000002C0 _TEXT	Length= 0000000F Public STDCALL
+  next . . . . . . . . . . . . .	L Near	 000002C8 _TEXT	
+  continue . . . . . . . . . . .	L Near	 000002CE _TEXT	
+ClearRegisters . . . . . . . . .	P Near	 00000257 _TEXT	Length= 0000001F Public STDCALL
+ClearString  . . . . . . . . . .	P Near	 00000310 _TEXT	Length= 00000016 Public STDCALL
+  clearLoop  . . . . . . . . . .	L Near	 0000031C _TEXT	
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -649,9 +738,17 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DisplayMainMenu  . . . . . . . .	P Near	 000000EE _TEXT	Length= 00000038 Public STDCALL
+DisplayMainMenu  . . . . . . . .	P Near	 00000276 _TEXT	Length= 0000004A Public STDCALL
+  continue . . . . . . . . . . .	L Near	 000002B4 _TEXT	
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+EncryptDecrypt . . . . . . . . .	P Near	 00000162 _TEXT	Length= 0000007C Public STDCALL
+  eLoop  . . . . . . . . . . . .	L Near	 00000188 _TEXT	
+  doShift  . . . . . . . . . . .	L Near	 000001B1 _TEXT	
+  continue . . . . . . . . . . .	L Near	 000001CD _TEXT	
+EnterString  . . . . . . . . . .	P Near	 00000213 _TEXT	Length= 00000044 Public STDCALL
+  start  . . . . . . . . . . . .	L Near	 00000213 _TEXT	
+  continue . . . . . . . . . . .	L Near	 00000254 _TEXT	
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToDosDateTime  . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToSystemTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -683,14 +780,24 @@ HeapDestroy  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 HeapFree . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 HeapSize . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 IsDigit  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+LettersOnly  . . . . . . . . . .	P Near	 000001DE _TEXT	Length= 00000035 Public STDCALL
+  L1 . . . . . . . . . . . . . .	L Near	 000001EC _TEXT	
+  letter . . . . . . . . . . . .	L Near	 000001F7 _TEXT	
+  notLetter  . . . . . . . . . .	L Near	 00000205 _TEXT	
+  keepgoing  . . . . . . . . . .	L Near	 00000209 _TEXT	
+  complete . . . . . . . . . . .	L Near	 0000020C _TEXT	
 LocalFree  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MessageBoxA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Modulo . . . . . . . . . . . . .	P Near	 000002CF _TEXT	Length= 0000000F Public STDCALL
 MsgBoxAsk  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MsgBox . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseDecimal32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ParseInteger32 . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 PeekConsoleInputA  . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Printit  . . . . . . . . . . . .	P Near	 000002DE _TEXT	Length= 00000032 Public STDCALL
+  printLoop  . . . . . . . . . .	L Near	 000002F0 _TEXT	
+  continue . . . . . . . . . . .	L Near	 00000308 _TEXT	
 Random32 . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 RandomRange  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Randomize  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -743,35 +850,16 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 000000CF Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000140 Public STDCALL
   startHere  . . . . . . . . . .	L Near	 00000005 _TEXT	
-  opt1 . . . . . . . . . . . . .	L Near	 00000023 _TEXT	
-  opt2 . . . . . . . . . . . . .	L Near	 00000038 _TEXT	
-  opt3 . . . . . . . . . . . . .	L Near	 0000004D _TEXT	
-  opt4 . . . . . . . . . . . . .	L Near	 00000062 _TEXT	
-  opt5 . . . . . . . . . . . . .	L Near	 00000077 _TEXT	
-  opt6 . . . . . . . . . . . . .	L Near	 0000008F _TEXT	
-  opt7 . . . . . . . . . . . . .	L Near	 000000A7 _TEXT	
-  oops . . . . . . . . . . . . .	L Near	 000000B2 _TEXT	
-  quitit . . . . . . . . . . . .	L Near	 000000C8 _TEXT	
-option1  . . . . . . . . . . . .	P Near	 00000126 _TEXT	Length= 00000018 Public STDCALL
-option2  . . . . . . . . . . . .	P Near	 0000013E _TEXT	Length= 0000001D Public STDCALL
-  L2 . . . . . . . . . . . . . .	L Near	 00000145 _TEXT	
-  keepgoing  . . . . . . . . . .	L Near	 00000155 _TEXT	
-option3  . . . . . . . . . . . .	P Near	 0000015B _TEXT	Length= 00000041 Public STDCALL
-  L1 . . . . . . . . . . . . . .	L Near	 00000169 _TEXT	
-  letter . . . . . . . . . . . .	L Near	 00000180 _TEXT	
-  notLetter  . . . . . . . . . .	L Near	 0000018E _TEXT	
-  keepgoing  . . . . . . . . . .	L Near	 00000192 _TEXT	
-  complete . . . . . . . . . . .	L Near	 00000195 _TEXT	
-option4  . . . . . . . . . . . .	P Near	 0000019C _TEXT	Length= 00000027 Public STDCALL
-  L1 . . . . . . . . . . . . . .	L Near	 000001A4 _TEXT	
-option5  . . . . . . . . . . . .	P Near	 000001C3 _TEXT	Length= 00000051 Public STDCALL
-  L1 . . . . . . . . . . . . . .	L Near	 000001D2 _TEXT	
-  palindrome . . . . . . . . . .	L Near	 000001E2 _TEXT	
-  notPalindrome  . . . . . . . .	L Near	 000001F9 _TEXT	
-  complete . . . . . . . . . . .	L Near	 0000020E _TEXT	
-option6  . . . . . . . . . . . .	P Near	 00000214 _TEXT	Length= 0000001E Public STDCALL
+  opt1 . . . . . . . . . . . . .	L Near	 0000001E _TEXT	
+  opt2 . . . . . . . . . . . . .	L Near	 00000053 _TEXT	
+  opt3 . . . . . . . . . . . . .	L Near	 0000007E _TEXT	
+  opt4 . . . . . . . . . . . . .	L Near	 000000C4 _TEXT	
+  opt5 . . . . . . . . . . . . .	L Near	 00000102 _TEXT	
+  oops . . . . . . . . . . . . .	L Near	 0000010D _TEXT	
+  invalid  . . . . . . . . . . .	L Near	 00000123 _TEXT	
+  quit . . . . . . . . . . . . .	L Near	 00000139 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -895,9 +983,8 @@ MB_YESNOCANCEL . . . . . . . . .	Number	 00000003h
 MB_YESNO . . . . . . . . . . . .	Number	 00000004h   
 MENU_EVENT . . . . . . . . . . .	Number	 00000008h   
 MOUSE_EVENT  . . . . . . . . . .	Number	 00000002h   
-Menuprompt1  . . . . . . . . . .	Byte	 0000006D _DATA	
-Menuprompt2  . . . . . . . . . .	Byte	 00000126 _DATA	
-Menuprompt3  . . . . . . . . . .	Byte	 00000133 _DATA	
+Menuprompt1  . . . . . . . . . .	Byte	 00000182 _DATA	
+Menuprompt2  . . . . . . . . . .	Byte	 0000018E _DATA	
 MessageBox . . . . . . . . . . .	Text   	 MessageBoxA
 NULL . . . . . . . . . . . . . .	Number	 00000000h   
 NUMLOCK_ON . . . . . . . . . . .	Number	 00000020h   
@@ -918,7 +1005,6 @@ SetConsoleTitle  . . . . . . . .	Text   	 SetConsoleTitleA
 TAB  . . . . . . . . . . . . . .	Number	 00000009h   
 TRUE . . . . . . . . . . . . . .	Number	 00000001h   
 TRUNCATE_EXISTING  . . . . . . .	Number	 00000005h   
-UserOption . . . . . . . . . . .	Byte	 00000000 _DATA	
 VK_11  . . . . . . . . . . . . .	Number	 000000BDh   
 VK_12  . . . . . . . . . . . . .	Number	 000000BBh   
 VK_ADD . . . . . . . . . . . . .	Number	 0000006Bh   
@@ -1003,11 +1089,21 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
+currentLetter  . . . . . . . . .	Byte	 00000150 _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
-errormessage . . . . . . . . . .	Byte	 00000035 _DATA	
+divisor  . . . . . . . . . . . .	Byte	 00000200 _DATA	
+encrypt  . . . . . . . . . . . .	Byte	 00000151 _DATA	
+errorMessage . . . . . . . . . .	Byte	 000000C7 _DATA	
+errorMsg . . . . . . . . . . . .	Byte	 00000152 _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
+invalidMessage . . . . . . . . .	Byte	 000000FF _DATA	
+keyIndex . . . . . . . . . . . .	Byte	 0000014E _DATA	
+keyLength  . . . . . . . . . . .	Byte	 00000098 _DATA	
+keyPrompt  . . . . . . . . . . .	Byte	 0000009A _DATA	
+keySet . . . . . . . . . . . . .	Byte	 00000099 _DATA	
+key  . . . . . . . . . . . . . .	Byte	 00000065 _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -1016,14 +1112,16 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 maxLength  . . . . . . . . . . .	Number	 00000033h   
-notPalMsg  . . . . . . . . . . .	Byte	 0000021A _DATA	
-option1prompt  . . . . . . . . .	Byte	 00000192 _DATA	
-option5prompt  . . . . . . . . .	Byte	 0000023A _DATA	
-palMsg . . . . . . . . . . . . .	Byte	 000001FE _DATA	
+phraseDisplay1 . . . . . . . . .	Byte	 000001E2 _DATA	
+phraseIndex  . . . . . . . . . .	Byte	 0000014F _DATA	
+phraseLength . . . . . . . . . .	Byte	 00000033 _DATA	
+phrasePrompt . . . . . . . . . .	Byte	 00000035 _DATA	
+phraseSet  . . . . . . . . . . .	Byte	 00000034 _DATA	
+phrase . . . . . . . . . . . . .	Byte	 00000000 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-theStringLen . . . . . . . . . .	Byte	 00000034 _DATA	
-theStringUppercase . . . . . . .	Byte	 000001CB _DATA	
-theString  . . . . . . . . . . .	Byte	 00000001 _DATA	
+seperator  . . . . . . . . . . .	Byte	 000001F3 _DATA	
+theKeyLength . . . . . . . . . .	Byte	 0000014D _DATA	
+userChoice . . . . . . . . . . .	Byte	 0000014C _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
