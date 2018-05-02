@@ -7,6 +7,7 @@ ConnectThree proto modePrompt:ptr byte, columnPrompt:ptr byte, errorMsg:ptr byte
 GetGameMode proto prompt:ptr byte, errorMsg:ptr byte, playerTypesAddr:ptr byte
 ChooseFirstPlayer proto playerNumber:ptr byte
 DisplayGrid proto gridAddr:ptr byte
+PrintGridRow proto leftChar:ptr byte, rightChar:ptr byte, middleChar:ptr byte, dividerChar:ptr byte, cellWidth:ptr byte
 
 .data
 mainMenuPrompt byte "Welcome! Please select an option:", 0Ah, 0Dh, "1) Play Connect Three", 0Ah, 0Dh, "2) Show stats", 0Ah, 0Dh, "3) Exit", 0
@@ -14,7 +15,7 @@ gameModePrompt byte "Welcome to Connect Three! Please select a game mode:", 0Ah,
 selectColumnPrompt byte "Please select a column to drop your piece (1 - 5): "
 invalidChoicePrompt byte "You have entered an invalid choice. Please enter a number from 1 to ",0
 maxMenuOption dword 3
-userChoice dword 0
+userChoice dword 1
 playerTypes byte 2 dup(0)
 currentPlayer byte 0
 grid    byte 4 dup(0)
@@ -31,13 +32,13 @@ call Randomize
 start:
 ; Display main menu and get user's choice
 call ClrScr
-INVOKE Menu, maxMenuOption, ADDR mainMenuPrompt, ADDR userChoice, ADDR invalidChoicePrompt
+;INVOKE Menu, maxMenuOption, ADDR mainMenuPrompt, ADDR userChoice, ADDR invalidChoicePrompt
 
 opt1:
 ; Play Connect Three
 cmp userChoice, 1
 jne opt2
-INVOKE GetGameMode, ADDR gameModePrompt, ADDR invalidChoicePrompt, ADDR playerTypes
+;INVOKE GetGameMode, ADDR gameModePrompt, ADDR invalidChoicePrompt, ADDR playerTypes
 INVOKE ChooseFirstPlayer, ADDR currentPlayer
 call ClrScr
 INVOKE DisplayGrid, ADDR grid
@@ -201,135 +202,108 @@ pop eax
 ret 4
 ChooseFirstPlayer endp
 
+PrintGridRow proc leftChar:ptr byte, rightChar:ptr byte, middleChar:ptr byte, dividerChar:ptr byte, cellWidth:ptr byte
+push esi
+push eax
+push ecx
+
+; Print left char first
+mov esi, leftChar
+mov al, [esi]
+call WriteChar
+
+; Middle 
+mov ecx, 4
+L1:
+push ecx
+; Set ECX to cellWidth
+mov esi, cellWidth
+mov ecx, 0
+mov cl, [esi]
+; Set AL to middleChar for printing
+mov esi, middleChar
+mov al, [esi]
+; Print middle of cell
+L2:
+call WriteChar
+LOOP L2
+
+; If we're on the last column, we don't need another divider
+pop ecx
+cmp ecx, 1
+je L1Done
+mov esi, dividerChar
+mov al, [esi]
+call WriteChar
+
+L1Done:
+loop L1
+
+; Top right corner
+mov esi, rightChar
+mov al, [esi]
+call WriteChar
+call CRLF
+
+pop ecx
+pop eax
+pop esi
+ret 20
+PrintGridRow endp
+
 DisplayGrid proc gridAddr:ptr byte
-LOCAL rowCount:byte
+LOCAL rowCount:byte, cellWidth:byte, cellHeight:byte, leftChar:byte, rightChar:byte, middleChar:byte, dividerChar:byte
 pushad
+
+mov cellWidth, 15
+mov cellHeight, 5
 
 mov rowCount, 0
 lea eax, grid
 
 ; First output top of grid
-; Top left corner
-mov al, 201
-call WriteChar
+mov leftChar, 201
+mov rightChar, 187
+mov middleChar, 205
+mov dividerChar, 209
+INVOKE PrintGridRow, ADDR leftChar, ADDR rightChar, ADDR middleChar, ADDR dividerChar, ADDR cellWidth
 
-; Middle 
-mov ecx, 7
+; Then print middle of grid
+mov ecx, 4
 L1:
 push ecx
-shr ecx, 1
-jc odd
-; ECX is even
-mov al, 209
-call WriteChar
-jmp L1done
-odd:
-; ECX is odd
-mov al, 205
-call WriteChar
-L1done:
-pop ecx
-loop L1
-
-; Top right corner
-mov ecx, 7
-mov al, 187
-call WriteChar
-call CRLF
-
-; Then output middle of grid
-start:
-mov ecx, 4
-mov esi, 0
-
-; Start row
-mov al, 186
-call WriteChar
+; Set ECX to cellHeight
+movzx ecx, cellHeight
+; Set contents of row
+mov leftChar, 186
+mov rightChar, 186
+mov middleChar, ' '
+mov dividerChar, 179
+; Print row
 L2:
-; TODO: Output colored block depending on contents of matrix here
-mov al, ' '
-call WriteChar
-
-; If we're at the last column, skip writing last seperator
-cmp ecx, 1
-je RowEnd
-
-; If we're not at the last column,
-; Output column seperator
-mov al, 179
-call WriteChar
+INVOKE PrintGridRow, ADDR leftChar, ADDR rightChar, ADDR middleChar, ADDR dividerChar, ADDR cellWidth
 LOOP L2
 
-RowEnd:
-; Print end-of-row character
-mov al, 186
-call WriteChar
-
-; Check if we're on the last row
-call CRLF
-inc rowCount
-cmp rowCount, 4
-je printBottom
-
-; Print row divider
-; Print left side
-mov al, 199
-call WriteChar
-
-; Middle 
-mov ecx, 7
-L3:
-push ecx
-shr ecx, 1
-jc odd2
-; ECX is even
-mov al, 197
-call WriteChar
-jmp L3done
-odd2:
-; ECX is odd
-mov al, 196
-call WriteChar
-L3done:
+; If we're on the last row, we don't need another divider
 pop ecx
-loop L3
+cmp ecx, 1
+je L1Done
+mov leftChar, 199
+mov rightChar, 182
+mov middleChar, 196
+mov dividerChar, 197
+INVOKE PrintGridRow, ADDR leftChar, ADDR rightChar, ADDR middleChar, ADDR dividerChar, ADDR cellWidth
 
-; Print right side
-mov ecx, 7
-mov al, 182
-call WriteChar
-call CRLF
+L1Done:
+loop L1
 
-jmp start
+; Print the bottom of the grid
+mov leftChar, 200
+mov rightChar, 188
+mov middleChar, 205
+mov dividerChar, 207
+INVOKE PrintGridRow, ADDR leftChar, ADDR rightChar, ADDR middleChar, ADDR dividerChar, ADDR cellWidth
 
-printBottom:
-; Finally, output bottom of grid
-; Bottom left corner
-mov ecx, 7
-mov al, 200
-call WriteChar
-
-; Middle 
-L4:
-push ecx
-shr ecx, 1
-jc odd3
-; ECX is even
-mov al, 207
-call WriteChar
-jmp L4done
-odd3:
-; ECX is odd
-mov al, 205
-call WriteChar
-L4done:
-pop ecx
-loop L4
-
-; Bottom right corner
-mov ecx, 7
-mov al, 188
-call WriteChar
 call CRLF
 
 popad

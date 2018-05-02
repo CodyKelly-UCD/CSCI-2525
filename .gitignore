@@ -328,3 +328,5 @@ ASALocalRun/
 *.o
 
 .DS_Store
+
+TestProject/
