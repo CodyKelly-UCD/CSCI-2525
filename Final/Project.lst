@@ -1,8 +1,8 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    04/25/18 23:19:50
-: Matrix.as						     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/01/18 19:26:52
+: Final.as						     Page 1 - 1
 
 
-				TITLE: Matrix.asm
+				TITLE: Final.asm
 
 				INCLUDE Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -23,165 +23,469 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    04/25/18 23:19:50
 			      C .LIST
 			      C 
 
-				; Prototypes
-				GetRandomLetter proto, letterPtr:ptr byte
-				Modulo proto, divisor:byte, dividend:byte
-				FillMatrix proto, matrixAddr:ptr byte
+				Menu proto maxOption:dword, prompt:ptr byte, choice:ptr dword, errorMsg: ptr byte
+				ConnectThree proto modePrompt:ptr byte, columnPrompt:ptr byte, errorMsg:ptr byte
+				GetGameMode proto prompt:ptr byte, errorMsg:ptr byte, playerTypesAddr:ptr byte
+				ChooseFirstPlayer proto playerNumber:ptr byte
+				DisplayGrid proto gridAddr:ptr byte
 
  00000000			.data
- 00000000  00000005 [		matrix  byte 5 dup(0)
+ 00000000 57 65 6C 63 6F	mainMenuPrompt byte "Welcome! Please select an option:", 0Ah, 0Dh, "1) Play Connect Three", 0Ah, 0Dh, "2) Show stats", 0Ah, 0Dh, "3) Exit", 0
+	   6D 65 21 20 50
+	   6C 65 61 73 65
+	   20 73 65 6C 65
+	   63 74 20 61 6E
+	   20 6F 70 74 69
+	   6F 6E 3A 0A 0D
+	   31 29 20 50 6C
+	   61 79 20 43 6F
+	   6E 6E 65 63 74
+	   20 54 68 72 65
+	   65 0A 0D 32 29
+	   20 53 68 6F 77
+	   20 73 74 61 74
+	   73 0A 0D 33 29
+	   20 45 78 69 74
+	   00
+ 00000051 57 65 6C 63 6F	gameModePrompt byte "Welcome to Connect Three! Please select a game mode:", 0Ah, 0Dh, "1) Human vs. human", 0Ah, 0Dh, "2) Human vs. computer", 0Ah, 0Dh, "3) Computer vs. computer", 0
+	   6D 65 20 74 6F
+	   20 43 6F 6E 6E
+	   65 63 74 20 54
+	   68 72 65 65 21
+	   20 50 6C 65 61
+	   73 65 20 73 65
+	   6C 65 63 74 20
+	   61 20 67 61 6D
+	   65 20 6D 6F 64
+	   65 3A 0A 0D 31
+	   29 20 48 75 6D
+	   61 6E 20 76 73
+	   2E 20 68 75 6D
+	   61 6E 0A 0D 32
+	   29 20 48 75 6D
+	   61 6E 20 76 73
+	   2E 20 63 6F 6D
+	   70 75 74 65 72
+	   0A 0D 33 29 20
+	   43 6F 6D 70 75
+	   74 65 72 20 76
+	   73 2E 20 63 6F
+	   6D 70 75 74 65
+	   72 00
+ 000000CB 50 6C 65 61 73	selectColumnPrompt byte "Please select a column to drop your piece (1 - 5): "
+	   65 20 73 65 6C
+	   65 63 74 20 61
+	   20 63 6F 6C 75
+	   6D 6E 20 74 6F
+	   20 64 72 6F 70
+	   20 79 6F 75 72
+	   20 70 69 65 63
+	   65 20 28 31 20
+	   2D 20 35 29 3A
+	   20
+ 000000FE 59 6F 75 20 68	invalidChoicePrompt byte "You have entered an invalid choice. Please enter a number from 1 to ",0
+	   61 76 65 20 65
+	   6E 74 65 72 65
+	   64 20 61 6E 20
+	   69 6E 76 61 6C
+	   69 64 20 63 68
+	   6F 69 63 65 2E
+	   20 50 6C 65 61
+	   73 65 20 65 6E
+	   74 65 72 20 61
+	   20 6E 75 6D 62
+	   65 72 20 66 72
+	   6F 6D 20 31 20
+	   74 6F 20 00
+ 00000143 00000003		maxMenuOption dword 3
+ 00000147 00000000		userChoice dword 0
+ 0000014B  00000002 [		playerTypes byte 2 dup(0)
 	    00
 	   ]
- 00000005  00000005 [		        byte 5 dup(0)
+ 0000014D 00			currentPlayer byte 0
+ 0000014E  00000004 [		grid    byte 4 dup(0)
 	    00
 	   ]
- 0000000A  00000005 [		        byte 5 dup(0)
+ 00000152 = 00000004		gridLength = ($ - grid)
+ 00000152  00000004 [		        byte 4 dup(0)
+	    00
+	   ]
+ 00000156  00000004 [		        byte 4 dup(0)
+	    00
+	   ]
+ 0000015A  00000004 [		        byte 4 dup(0)
 	    00
 	   ]
 
+ 0000015E 10 59 6F 75 27	s1 byte, "You've selected option ", 0
+	   76 65 20 73 65
+	   6C 65 63 74 65
+	   64 20 6F 70 74
+	   69 6F 6E 20 00
  00000000			.code
  00000000			main PROC
  00000000  E8 00000000 E	call Randomize
 
-				INVOKE FillMatrix, ADDR matrix
- 00000005  68 00000000 R   *	    push   OFFSET matrix
- 0000000A  E8 00000007	   *	    call   FillMatrix
+ 00000005			start:
+				; Display main menu and get user's choice
+ 00000005  E8 00000000 E	call ClrScr
+				INVOKE Menu, maxMenuOption, ADDR mainMenuPrompt, ADDR userChoice, ADDR invalidChoicePrompt
+ 0000000A  68 000000FE R   *	    push   OFFSET invalidChoicePrompt
+ 0000000F  68 00000147 R   *	    push   OFFSET userChoice
+ 00000014  68 00000000 R   *	    push   OFFSET mainMenuPrompt
+ 00000019  FF 35 00000143 R *	    push   maxMenuOption
+ 0000001F  E8 00000075	   *	    call   Menu
 
+ 00000024			opt1:
+				; Play Connect Three
+ 00000024  83 3D 00000147 R	cmp userChoice, 1
+	   01
+ 0000002B  75 34		jne opt2
+				INVOKE GetGameMode, ADDR gameModePrompt, ADDR invalidChoicePrompt, ADDR playerTypes
+ 0000002D  68 0000014B R   *	    push   OFFSET playerTypes
+ 00000032  68 000000FE R   *	    push   OFFSET invalidChoicePrompt
+ 00000037  68 00000051 R   *	    push   OFFSET gameModePrompt
+ 0000003C  E8 000000D7	   *	    call   GetGameMode
+				INVOKE ChooseFirstPlayer, ADDR currentPlayer
+ 00000041  68 0000014D R   *	    push   OFFSET currentPlayer
+ 00000046  E8 00000140	   *	    call   ChooseFirstPlayer
+ 0000004B  E8 00000000 E	call ClrScr
+				INVOKE DisplayGrid, ADDR grid
+ 00000050  68 0000014E R   *	    push   OFFSET grid
+ 00000055  E8 0000014B	   *	    call   DisplayGrid
+ 0000005A  E8 00000000 E	call waitMsg
+ 0000005F  EB A4		jmp start
+
+ 00000061			opt2:
+				; Show stats
+ 00000061  83 3D 00000147 R	cmp userChoice, 2
+	   02
+ 00000068  75 28		jne done
+ 0000006A  BA 0000015E R	mov edx, offset s1
+ 0000006F  B8 00000003		mov eax, 3
+ 00000074  E8 00000000 E	call ClrScr
+ 00000079  E8 00000000 E	call WriteString
+ 0000007E  E8 00000000 E	call WriteDec
+ 00000083  E8 00000000 E	call CRLF
+ 00000088  E8 00000000 E	call WaitMsg
+ 0000008D  E9 FFFFFF73		jmp start
+
+ 00000092			done:
 				exit
- 0000000F  6A 00	   *	    push   +000000000h
- 00000011  E8 00000000 E   *	    call   ExitProcess
- 00000016			main ENDP
-
- 00000016			FillMatrix proc, matrixAddr:ptr byte
-				local rowIndex:byte, columnIndex:byte, currentAddr:dword
- 00000016  55		   *	    push   ebp
- 00000017  8B EC	   *	    mov    ebp, esp
- 00000019  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
- 0000001C  60			pushad
- 0000001D  C6 45 FF 05		mov rowIndex, 5
- 00000021  C6 45 FE 05		mov columnIndex, 5
-
- 00000025			rowLoop:
-				; Add 5 * rowIndex + matrixAddr to ebx to update row position
- 00000025  FE 4D FF		dec rowIndex
- 00000028  8B 5D 08		mov ebx, matrixAddr
- 0000002B  0F B6 4D FF		movzx ecx, rowIndex
- 0000002F  C6 45 FE 05		mov columnIndex, 5
- 00000033  80 7D FF 00		cmp rowIndex, 0
- 00000037  74 05		jz columnLoop
- 00000039			loop1:
- 00000039  83 C3 05		add ebx, 5
- 0000003C  E2 FB		loop loop1
-
- 0000003E			columnLoop:
-				; Update current column index
- 0000003E  0F B6 75 FE		movzx esi, columnIndex
-
-				; Put random letter in address
- 00000042  89 5D F8		mov currentAddr, ebx
- 00000045  01 75 F8		add currentAddr, esi
-				invoke GetRandomLetter, currentAddr
- 00000048  FF 75 F8	   *	    push   dword  ptr ss:[ebp]+0FFFFFFF8h
- 0000004B  E8 0000002A	   *	    call   GetRandomLetter
-
-				; Loop if needed
- 00000050  FE 4D FE		dec columnIndex
- 00000053  80 7D FE 00		cmp columnIndex, 0
- 00000057  77 E5		ja columnLoop
- 00000059  80 7D FF FF		cmp rowIndex, -1
- 0000005D  7F C6		jg rowLoop
-
- 0000005F  61			popad
- 00000060  C9		   *	    leave  
- 00000061  C2 0004		ret 4
- 00000064			FillMatrix endp
+ 00000092  6A 00	   *	    push   +000000000h
+ 00000094  E8 00000000 E   *	    call   ExitProcess
+ 00000099			main ENDP
 
 				; -----------------------------------------------------------------------------
- 00000064			Modulo proc, divisor:byte, dividend:byte
-				; Performs a Modulo operation on an integer
+ 00000099			Menu proc maxOption:dword, prompt:ptr byte, choice:ptr dword, errorMsg:ptr byte
+				; Displays the prompt given, gets a selection from the user, checks if the
+				; selection is more than or equal to one and less than or equal to maxOption,
+				; and stores the result into the memory at choice.
+				;
+				; Receives:
+				; maxOption: The maximum number the user is allowed to select.
+				; prompt: A pointer to a string telling the user what they're selecting.
+				; choice: A pointer to where this procedure should store the result
+				; errorMsg: This string is displayed when the user selects an invalid option
+				;
 				; Returns:
-				; EAX: result
- 00000064  55		   *	    push   ebp
- 00000065  8B EC	   *	    mov    ebp, esp
- 00000067  B8 00000000		mov eax, 0          ; Clear EAX
- 0000006C  8A 45 0C		mov al, dividend    ; Set dividend
- 0000006F  F6 75 08		div divisor         ; Divide by divisor
- 00000072  8A C4		mov al, ah          ; Move result to al so it's all nice and tidy
- 00000074  B4 00		mov ah, 0           ; Get rid of pesky leftovers
- 00000076  C9		   *	    leave  
- 00000077  C2 0008		ret 8               ; Bam, done.
- 0000007A			Modulo endp
+				; choice: The number of the menu option the user chose.
+
+				LOCAL beginString:dword, period:dword
+ 00000099  55		   *	    push   ebp
+ 0000009A  8B EC	   *	    mov    ebp, esp
+ 0000009C  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
+ 0000009F  C7 45 FC		mov beginString, '>'
+	   0000003E
+ 000000A6  C7 45 FD		mov beginString[1], ' '
+	   00000020
+ 000000AD  C7 45 F8		mov period, '.'
+	   0000002E
+
+ 000000B4  60			pushad
+
+ 000000B5			start:
+				; First let's display the menu prompt
+ 000000B5  8B 55 0C		mov edx, prompt
+ 000000B8  E8 00000000 E	call WriteString
+ 000000BD  E8 00000000 E	call CRLF
+ 000000C2  8D 55 FC		lea edx, beginString
+ 000000C5  E8 00000000 E	call WriteString
+
+				; Receive the user's option
+ 000000CA  8B 75 10		mov esi, choice
+ 000000CD  E8 00000000 E	call ReadHex
+ 000000D2  89 06		mov [esi], eax
+
+				; Check to see if the input is within the valid range
+				; Start over if:
+				; The number is below 1
+ 000000D4  B8 00000001		mov eax, 1
+ 000000D9  39 06		cmp [esi], eax
+ 000000DB  72 09		jb tryAgain
+				; The number is above the max range
+ 000000DD  8B 45 08		mov eax, maxOption
+ 000000E0  39 06		cmp [esi], eax
+ 000000E2  77 02		ja tryAgain
+
+				; If we're here, then the user successfully entered a menu option. 
+				; Yay for them!
+ 000000E4  EB 2E		jmp done
+
+ 000000E6			tryAgain:
+				; If we're here, the user's gone and messed up. Let's ask them to try again.
+				; First we display the main part of the error message
+ 000000E6  E8 00000000 E	call ClrScr
+ 000000EB  8B 55 14		mov edx, errorMsg
+ 000000EE  E8 00000000 E	call WriteString
+
+				; Then we output the upper limit of correct choices.
+ 000000F3  8B 45 08		mov eax, maxOption
+ 000000F6  E8 00000000 E	call WriteDec
+ 000000FB  8D 55 F8		lea edx, period
+ 000000FE  E8 00000000 E	call WriteString
+ 00000103  E8 00000000 E	call CRLF
+ 00000108  E8 00000000 E	call WaitMsg
+ 0000010D  E8 00000000 E	call ClrScr
+
+				; And start over
+ 00000112  EB A1		jmp start
+
+ 00000114			done:
+ 00000114  C9		   *	    leave  
+ 00000115  C2 0010		ret 16
+ 00000118			Menu endp
 
 				; -----------------------------------------------------------------------------
- 0000007A			GetRandomLetter proc, letterPtr:ptr byte
-				; Replaces the contents of the byte at the address passed in through letterPtr
-				; with the ascii value of a random capital letter.
-				; This letter has a 50% chance of being a vowel and a 50% chance of being
-				; a consonant.
+ 00000118			GetGameMode proc prompt: ptr byte, errorMsg: ptr byte, playerTypesAddr:ptr byte
+				; This procedure asks the user to choose a Connect Three game mode.
+				; The user will choose either:
+				; 1) Human vs. human
+				; 2) Human vs. computer
+				; 3) Computer vs. computer
+				LOCAL maxOptions:dword, choice:dword, choiceAddr: ptr dword
+ 00000118  55		   *	    push   ebp
+ 00000119  8B EC	   *	    mov    ebp, esp
+ 0000011B  83 C4 F4	   *	    add    esp, 0FFFFFFF4h
+ 0000011E  60			pushad
 
-				; Setup
-				local divisor:byte, dividend:byte, vowels[5]:byte
- 0000007A  55		   *	    push   ebp
- 0000007B  8B EC	   *	    mov    ebp, esp
- 0000007D  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
- 00000080  C6 45 FF 02		mov divisor, 2      ; Used to find modulo 2 of a number
- 00000084  C6 45 F9 41		mov vowels[0], 'A'
- 00000088  C6 45 FA 45		mov vowels[1], 'E'
- 0000008C  C6 45 FB 49		mov vowels[2], 'I'
- 00000090  C6 45 FC 4F		mov vowels[3], 'O'
- 00000094  C6 45 FD 55		mov vowels[4], 'U'
- 00000098  8B 75 08		mov esi, letterPtr
- 0000009B  60			pushad
+ 0000011F  8D 45 F8		lea eax, choice
+ 00000122  89 45 F4		mov choiceAddr, eax
+ 00000125  C7 45 F8		mov choice, 0
+	   00000000
 
-				; First decide whether the letter is a vowel or consonant
- 0000009C  B8 00000064		mov eax, 100
- 000000A1  E8 00000000 E	call RandomRange
- 000000A6  88 45 FE		mov dividend, al
-				invoke Modulo, divisor, dividend
- 000000A9  8A 45 FE	   *	    mov    al, byte  ptr ss:[ebp]+0FEh
- 000000AC  50		   *	    push   eax
- 000000AD  8A 45 FF	   *	    mov    al, byte  ptr ss:[ebp]+0FFh
- 000000B0  50		   *	    push   eax
- 000000B1  E8 FFFFFFAE	   *	    call   Modulo
- 000000B6  83 F8 00		cmp eax, 0
- 000000B9  74 13		je get_consonant
+				; Display game mode menu and get user option
+ 0000012C  C7 45 FC		mov maxOptions, 3
+	   00000003
+ 00000133  E8 00000000 E	call ClrScr
+				INVOKE Menu, maxOptions, prompt, choiceAddr, errorMsg
+ 00000138  FF 75 0C	   *	    push   dword  ptr ss:[ebp]+00000000Ch
+ 0000013B  FF 75 F4	   *	    push   dword  ptr ss:[ebp]+0FFFFFFF4h
+ 0000013E  FF 75 08	   *	    push   dword  ptr ss:[ebp]+000000008h
+ 00000141  FF 75 FC	   *	    push   dword  ptr ss:[ebp]+0FFFFFFFCh
+ 00000144  E8 FFFFFF50	   *	    call   Menu
 
-				; If vowel
- 000000BB  B8 00000005		mov eax, 5
- 000000C0  E8 00000000 E	call RandomRange
- 000000C5  36: 8A 5C 28		mov bl, vowels[eax]
-	   F9
- 000000CA  88 1E		mov [esi], bl
- 000000CC  EB 1F		jmp done
+ 00000149  8B 75 F8		mov esi, choice
+ 0000014C  8B 06		mov eax, [esi]
 
-				; If consonant
- 000000CE			get_consonant:
-				; First get ascii code of a random capital letter
- 000000CE  B8 0000001A		mov eax, 26
- 000000D3  E8 00000000 E	call RandomRange
- 000000D8  83 C0 41		add eax, 'A'
+				; Now we set up our game with the correct player types
+ 0000014E			humanVsHuman:
+ 0000014E  83 F8 01		cmp eax, 1
+ 00000151  75 10		jne humanVsComputer
+ 00000153  C7 45 10		mov playerTypesAddr[0], 1   ; One for human
+	   00000001
+ 0000015A  C7 45 11		mov playerTypesAddr[1], 1
+	   00000001
+ 00000161  EB 23		jmp done
 
-				; Next we'll have to check if the letter is a vowel
-				; by checking our random ascii code against all vowel codes
- 000000DB  B9 00000005		mov ecx, 5
- 000000E0			find_vowel_loop:
- 000000E0  8B D9		mov ebx, ecx
- 000000E2  36: 3A 44 2B		cmp al, vowels[ebx]
-	   F9
- 000000E7  74 E5		je get_consonant    ; If our code matches one in the vowels array, start over
- 000000E9  E2 F5		loop find_vowel_loop
-				; If we're here, we have a consonant.
- 000000EB  88 06		mov [esi], al
+ 00000163			humanVsComputer:
+ 00000163  83 F8 02		cmp eax, 2
+ 00000166  75 10		jne computerVsComputer
+ 00000168  C7 45 10		mov playerTypesAddr[0], 1
+	   00000001
+ 0000016F  C7 45 11		mov playerTypesAddr[1], 0   ; Zero for computer
+	   00000000
+ 00000176  EB 0E		jmp done
 
- 000000ED			done:
- 000000ED  61			popad
- 000000EE  C9		   *	    leave  
- 000000EF  C2 0004		ret 4
- 000000F2			GetRandomLetter endp
+ 00000178			computerVsComputer:
+ 00000178  C7 45 10		mov playerTypesAddr[0], 0
+	   00000000
+ 0000017F  C7 45 11		mov playerTypesAddr[1], 0
+	   00000000
+
+ 00000186			done:
+ 00000186  61			popad
+ 00000187  C9		   *	    leave  
+ 00000188  C2 000C		ret 12
+ 0000018B			GetGameMode endp
+
+				; -----------------------------------------------------------------------------
+ 0000018B			ChooseFirstPlayer proc playerNumber:ptr byte
+				; Gets a random number, either 1 or 0, and stores it at the address in
+				; playerNumber
+				;
+				; Receives:
+				; playerNumber: The address to store the result
+				;
+				; Returns:
+				; Either a 1 or 0 at the address in playerNumber
+ 0000018B  55		   *	    push   ebp
+ 0000018C  8B EC	   *	    mov    ebp, esp
+ 0000018E  50			push eax
+ 0000018F  56			push esi
+ 00000190  B8 00000001		mov eax, 1
+ 00000195  E8 00000000 E	call RandomRange
+ 0000019A  8B 75 08		mov esi, playerNumber
+ 0000019D  88 06		mov byte ptr [esi], al
+ 0000019F  5E			pop esi
+ 000001A0  58			pop eax
+ 000001A1  C9		   *	    leave  
+ 000001A2  C2 0004		ret 4
+ 000001A5			ChooseFirstPlayer endp
+
+ 000001A5			DisplayGrid proc gridAddr:ptr byte
+				LOCAL rowCount:byte
+ 000001A5  55		   *	    push   ebp
+ 000001A6  8B EC	   *	    mov    ebp, esp
+ 000001A8  83 C4 FC	   *	    add    esp, 0FFFFFFFCh
+ 000001AB  60			pushad
+
+ 000001AC  C6 45 FF 00		mov rowCount, 0
+ 000001B0  8D 05 0000014E R	lea eax, grid
+
+				; First output top of grid
+				; Top left corner
+ 000001B6  B0 C9		mov al, 201
+ 000001B8  E8 00000000 E	call WriteChar
+
+				; Middle 
+ 000001BD  B9 00000007		mov ecx, 7
+ 000001C2			L1:
+ 000001C2  51			push ecx
+ 000001C3  D1 E9		shr ecx, 1
+ 000001C5  72 09		jc odd
+				; ECX is even
+ 000001C7  B0 D1		mov al, 209
+ 000001C9  E8 00000000 E	call WriteChar
+ 000001CE  EB 07		jmp L1done
+ 000001D0			odd:
+				; ECX is odd
+ 000001D0  B0 CD		mov al, 205
+ 000001D2  E8 00000000 E	call WriteChar
+ 000001D7			L1done:
+ 000001D7  59			pop ecx
+ 000001D8  E2 E8		loop L1
+
+				; Top right corner
+ 000001DA  B9 00000007		mov ecx, 7
+ 000001DF  B0 BB		mov al, 187
+ 000001E1  E8 00000000 E	call WriteChar
+ 000001E6  E8 00000000 E	call CRLF
+
+				; Then output middle of grid
+ 000001EB			start:
+ 000001EB  B9 00000004		mov ecx, 4
+ 000001F0  BE 00000000		mov esi, 0
+
+				; Start row
+ 000001F5  B0 BA		mov al, 186
+ 000001F7  E8 00000000 E	call WriteChar
+ 000001FC			L2:
+				; TODO: Output colored block depending on contents of matrix here
+ 000001FC  B0 20		mov al, ' '
+ 000001FE  E8 00000000 E	call WriteChar
+
+				; If we're at the last column, skip writing last seperator
+ 00000203  83 F9 01		cmp ecx, 1
+ 00000206  74 09		je RowEnd
+
+				; If we're not at the last column,
+				; Output column seperator
+ 00000208  B0 B3		mov al, 179
+ 0000020A  E8 00000000 E	call WriteChar
+ 0000020F  E2 EB		LOOP L2
+
+ 00000211			RowEnd:
+				; Print end-of-row character
+ 00000211  B0 BA		mov al, 186
+ 00000213  E8 00000000 E	call WriteChar
+
+				; Check if we're on the last row
+ 00000218  E8 00000000 E	call CRLF
+ 0000021D  FE 45 FF		inc rowCount
+ 00000220  80 7D FF 04		cmp rowCount, 4
+ 00000224  74 37		je printBottom
+
+				; Print row divider
+				; Print left side
+ 00000226  B0 C7		mov al, 199
+ 00000228  E8 00000000 E	call WriteChar
+
+				; Middle 
+ 0000022D  B9 00000007		mov ecx, 7
+ 00000232			L3:
+ 00000232  51			push ecx
+ 00000233  D1 E9		shr ecx, 1
+ 00000235  72 09		jc odd2
+				; ECX is even
+ 00000237  B0 C5		mov al, 197
+ 00000239  E8 00000000 E	call WriteChar
+ 0000023E  EB 07		jmp L3done
+ 00000240			odd2:
+				; ECX is odd
+ 00000240  B0 C4		mov al, 196
+ 00000242  E8 00000000 E	call WriteChar
+ 00000247			L3done:
+ 00000247  59			pop ecx
+ 00000248  E2 E8		loop L3
+
+				; Print right side
+ 0000024A  B9 00000007		mov ecx, 7
+ 0000024F  B0 B6		mov al, 182
+ 00000251  E8 00000000 E	call WriteChar
+ 00000256  E8 00000000 E	call CRLF
+
+ 0000025B  EB 8E		jmp start
+
+ 0000025D			printBottom:
+				; Finally, output bottom of grid
+				; Bottom left corner
+ 0000025D  B9 00000007		mov ecx, 7
+ 00000262  B0 C8		mov al, 200
+ 00000264  E8 00000000 E	call WriteChar
+
+				; Middle 
+ 00000269			L4:
+ 00000269  51			push ecx
+ 0000026A  D1 E9		shr ecx, 1
+ 0000026C  72 09		jc odd3
+				; ECX is even
+ 0000026E  B0 CF		mov al, 207
+ 00000270  E8 00000000 E	call WriteChar
+ 00000275  EB 07		jmp L4done
+ 00000277			odd3:
+				; ECX is odd
+ 00000277  B0 CD		mov al, 205
+ 00000279  E8 00000000 E	call WriteChar
+ 0000027E			L4done:
+ 0000027E  59			pop ecx
+ 0000027F  E2 E8		loop L4
+
+				; Bottom right corner
+ 00000281  B9 00000007		mov ecx, 7
+ 00000286  B0 BC		mov al, 188
+ 00000288  E8 00000000 E	call WriteChar
+ 0000028D  E8 00000000 E	call CRLF
+
+ 00000292  61			popad
+ 00000293  C9		   *	    leave  
+ 00000294  C2 0004		RET 4
+ 00000297			DisplayGrid endp
+Final.asm(337) : warning A6004:procedure argument or local not referenced : gridAddr
 
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    04/25/18 23:19:50
-: Matrix.as						     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/01/18 19:26:52
+: Final.as						     Symbols 2 - 1
 
 
 
@@ -274,34 +578,45 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000000F Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000000F2 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000177 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 00000297 Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
+ChooseFirstPlayer  . . . . . . .	P Near	 0000018B _TEXT	Length= 0000001A Public STDCALL
+  playerNumber . . . . . . . . .	DWord	 bp + 00000008
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+ConnectThree . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+DisplayGrid  . . . . . . . . . .	P Near	 000001A5 _TEXT	Length= 000000F2 Public STDCALL
+  gridAddr . . . . . . . . . . .	DWord	 bp + 00000008
+  rowCount . . . . . . . . . . .	Byte	 bp - 00000001
+  L1 . . . . . . . . . . . . . .	L Near	 000001C2 _TEXT	
+  odd  . . . . . . . . . . . . .	L Near	 000001D0 _TEXT	
+  L1done . . . . . . . . . . . .	L Near	 000001D7 _TEXT	
+  start  . . . . . . . . . . . .	L Near	 000001EB _TEXT	
+  L2 . . . . . . . . . . . . . .	L Near	 000001FC _TEXT	
+  RowEnd . . . . . . . . . . . .	L Near	 00000211 _TEXT	
+  L3 . . . . . . . . . . . . . .	L Near	 00000232 _TEXT	
+  odd2 . . . . . . . . . . . . .	L Near	 00000240 _TEXT	
+  L3done . . . . . . . . . . . .	L Near	 00000247 _TEXT	
+  printBottom  . . . . . . . . .	L Near	 0000025D _TEXT	
+  L4 . . . . . . . . . . . . . .	L Near	 00000269 _TEXT	
+  odd3 . . . . . . . . . . . . .	L Near	 00000277 _TEXT	
+  L4done . . . . . . . . . . . .	L Near	 0000027E _TEXT	
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToDosDateTime  . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToSystemTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-FillMatrix . . . . . . . . . . .	P Near	 00000016 _TEXT	Length= 0000004E Public STDCALL
-  matrixAddr . . . . . . . . . .	DWord	 bp + 00000008
-  rowIndex . . . . . . . . . . .	Byte	 bp - 00000001
-  columnIndex  . . . . . . . . .	Byte	 bp - 00000002
-  currentAddr  . . . . . . . . .	DWord	 bp - 00000008
-  rowLoop  . . . . . . . . . . .	L Near	 00000025 _TEXT	
-  loop1  . . . . . . . . . . . .	L Near	 00000039 _TEXT	
-  columnLoop . . . . . . . . . .	L Near	 0000003E _TEXT	
 FlushConsoleInputBuffer  . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FormatMessageA . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetCommandLineA  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -312,6 +627,17 @@ GetConsoleMode . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 GetConsoleScreenBufferInfo . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetDateTime  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetFileTime  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+GetGameMode  . . . . . . . . . .	P Near	 00000118 _TEXT	Length= 00000073 Public STDCALL
+  prompt . . . . . . . . . . . .	DWord	 bp + 00000008
+  errorMsg . . . . . . . . . . .	DWord	 bp + 0000000C
+  playerTypesAddr  . . . . . . .	DWord	 bp + 00000010
+  maxOptions . . . . . . . . . .	DWord	 bp - 00000004
+  choice . . . . . . . . . . . .	DWord	 bp - 00000008
+  choiceAddr . . . . . . . . . .	DWord	 bp - 0000000C
+  humanVsHuman . . . . . . . . .	L Near	 0000014E _TEXT	
+  humanVsComputer  . . . . . . .	L Near	 00000163 _TEXT	
+  computerVsComputer . . . . . .	L Near	 00000178 _TEXT	
+  done . . . . . . . . . . . . .	L Near	 00000186 _TEXT	
 GetKeyState  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetLastError . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetLocalTime . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -319,14 +645,6 @@ GetMaxXY . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 GetMseconds  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetNumberOfConsoleInputEvents  .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetProcessHeap . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-GetRandomLetter  . . . . . . . .	P Near	 0000007A _TEXT	Length= 00000078 Public STDCALL
-  letterPtr  . . . . . . . . . .	DWord	 bp + 00000008
-  divisor  . . . . . . . . . . .	Byte	 bp - 00000001
-  dividend . . . . . . . . . . .	Byte	 bp - 00000002
-  vowels . . . . . . . . . . . .	Byte	 bp - 00000007
-  get_consonant  . . . . . . . .	L Near	 000000CE _TEXT	
-  find_vowel_loop  . . . . . . .	L Near	 000000E0 _TEXT	
-  done . . . . . . . . . . . . .	L Near	 000000ED _TEXT	
 GetStdHandle . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetSystemTime  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -339,10 +657,17 @@ HeapFree . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 HeapSize . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 IsDigit  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 LocalFree  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+Menu . . . . . . . . . . . . . .	P Near	 00000099 _TEXT	Length= 0000007F Public STDCALL
+  maxOption  . . . . . . . . . .	DWord	 bp + 00000008
+  prompt . . . . . . . . . . . .	DWord	 bp + 0000000C
+  choice . . . . . . . . . . . .	DWord	 bp + 00000010
+  errorMsg . . . . . . . . . . .	DWord	 bp + 00000014
+  beginString  . . . . . . . . .	DWord	 bp - 00000004
+  period . . . . . . . . . . . .	DWord	 bp - 00000008
+  start  . . . . . . . . . . . .	L Near	 000000B5 _TEXT	
+  tryAgain . . . . . . . . . . .	L Near	 000000E6 _TEXT	
+  done . . . . . . . . . . . . .	L Near	 00000114 _TEXT	
 MessageBoxA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-Modulo . . . . . . . . . . . . .	P Near	 00000064 _TEXT	Length= 00000016 Public STDCALL
-  divisor  . . . . . . . . . . .	Byte	 bp + 00000008
-  dividend . . . . . . . . . . .	Byte	 bp + 0000000C
 MsgBoxAsk  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MsgBox . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -401,7 +726,11 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000016 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000099 Public STDCALL
+  start  . . . . . . . . . . . .	L Near	 00000005 _TEXT	
+  opt1 . . . . . . . . . . . . .	L Near	 00000024 _TEXT	
+  opt2 . . . . . . . . . . . . .	L Near	 00000061 _TEXT	
+  done . . . . . . . . . . . . .	L Near	 00000092 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -623,10 +952,15 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
+currentPlayer  . . . . . . . . .	Byte	 0000014D _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
+gameModePrompt . . . . . . . . .	Byte	 00000051 _DATA	
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
+gridLength . . . . . . . . . . .	Number	 00000004h   
+grid . . . . . . . . . . . . . .	Byte	 0000014E _DATA	
+invalidChoicePrompt  . . . . . .	Byte	 000000FE _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -634,11 +968,16 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-matrix . . . . . . . . . . . . .	Byte	 00000000 _DATA	
+mainMenuPrompt . . . . . . . . .	Byte	 00000000 _DATA	
+maxMenuOption  . . . . . . . . .	DWord	 00000143 _DATA	
+playerTypes  . . . . . . . . . .	Byte	 0000014B _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+s1 . . . . . . . . . . . . . . .	Byte	 0000015E _DATA	
+selectColumnPrompt . . . . . . .	Byte	 000000CB _DATA	
+userChoice . . . . . . . . . . .	DWord	 00000147 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
-	   0 Warnings
+	   1 Warnings
 	   0 Errors

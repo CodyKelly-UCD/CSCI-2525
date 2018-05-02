@@ -4,8 +4,6 @@ INCLUDE Irvine32.inc
 
 .data
 
-.data?
-
 .code
 main PROC
 

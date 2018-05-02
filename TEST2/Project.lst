@@ -1,8 +1,17 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    04/25/18 23:19:50
-: Matrix.as						     Page 1 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    04/15/18 23:52:10
+: test2.as						     Page 1 - 1
 
 
-				TITLE: Matrix.asm
+				; Description:
+				; 
+				; Receives:
+				; 
+				; Returns:
+				; 
+				; Requires:
+				; 
+
+				TITLE: test2.asm
 
 				INCLUDE Irvine32.inc
 			      C ; Include file for Irvine32.lib             (Irvine32.inc)
@@ -23,165 +32,728 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    04/25/18 23:19:50
 			      C .LIST
 			      C 
 
-				; Prototypes
-				GetRandomLetter proto, letterPtr:ptr byte
-				Modulo proto, divisor:byte, dividend:byte
-				FillMatrix proto, matrixAddr:ptr byte
+ = mov eax, 0			ClearEAX textequ <mov eax, 0>
+ = mov ebx, 0			ClearEBX textequ <mov ebx, 0>
+ = mov ecx, 0			ClearECX textequ <mov ecx, 0>
+ = mov edx, 0			ClearEDX textequ <mov edx, 0>
+ = mov esi, 0			ClearESI textequ <mov esi, 0>
+ = mov edi, 0			ClearEDI textequ <mov edi, 0>
 
  00000000			.data
- 00000000  00000005 [		matrix  byte 5 dup(0)
-	    00
-	   ]
- 00000005  00000005 [		        byte 5 dup(0)
-	    00
-	   ]
- 0000000A  00000005 [		        byte 5 dup(0)
-	    00
-	   ]
+ 00000000 00			userChoice byte 0
+ 00000001 4D 41 49 4E 20	mainMenuPrompt byte 'MAIN MENU', 0Ah, 0Dh,
+	   4D 45 4E 55 0A
+	   0D 31 2E 20 50
+	   6C 61 79 20 6E
+	   65 77 20 67 61
+	   6D 65 0A 0D 32
+	   2E 20 53 68 6F
+	   77 20 73 74 61
+	   74 73 0A 0D 33
+	   2E 20 45 78 69
+	   74 0A 0D 00
+				'1. Play new game', 0Ah, 0Dh,
+				'2. Show stats',0Ah, 0Dh,
+				'3. Exit',0Ah, 0Dh, 0
+
+ 00000037			guessWord byte 14 dup(0)
+ 00000045			displayWord byte 28 dup(0)
+ 00000061 61 62 63 64 65	lettersGuessed byte 'abcdefghi',0
+	   66 67 68 69 00
+ 0000006B 00			remainingWordGuesses byte 0
+ 0000006C 00			remainingLetterGuesses byte 0
+ 0000006D 00			gamesWon byte 0
+ 0000006E 00			gamesLost byte 0
 
  00000000			.code
  00000000			main PROC
- 00000000  E8 00000000 E	call Randomize
+ 00000000  E8 00000179		call ClearRegisters
+ 00000005  E8 00000000 E	call Randomize
+				;call DisplayDirections
 
-				INVOKE FillMatrix, ADDR matrix
- 00000005  68 00000000 R   *	    push   OFFSET matrix
- 0000000A  E8 00000007	   *	    call   FillMatrix
+ 0000000A			startHere:
+ 0000000A  BA 00000001 R	mov edx, offset mainMenuPrompt
+ 0000000F  BB 00000003		mov ebx, 3
+ 00000014  E8 000001B9		call MenuPrompt
 
+ 00000019			opt1:
+				; Play new game
+ 00000019  3C 01		cmp al, 1
+ 0000001B  75 51		jne opt2
+ 0000001D  E8 00000000 E	call clrscr
+
+				; Reset game variables
+ 00000022  B9 0000000E		mov ecx, 14
+ 00000027  BA 00000037 R	mov edx, offset guessWord
+ 0000002C  E8 000001DC		call ClearString
+ 00000031  BA 00000045 R	mov edx, offset displayWord
+ 00000036  E8 000001D2		call ClearString
+				;mov ecx, 10
+				;mov edx, offset lettersGuessed
+				;call ClearString
+ 0000003B  C6 05 0000006B R	mov remainingWordGuesses, 3
+	   03
+ 00000042  C6 05 0000006C R	mov remainingLetterGuesses, 10
+	   0A
+
+				; Get random word
+ 00000049  BA 00000037 R	mov edx, offset guessWord
+ 0000004E  E8 000000B9		call GetRandomString
+
+				; Update display string
+ 00000053  BA 00000045 R	mov edx, offset displayWord
+ 00000058  B8 00000061 R	mov eax, offset lettersGuessed
+ 0000005D  BB 00000037 R	mov ebx, offset guessWord
+ 00000062  E8 00000019		call UpdateDisplayString
+
+
+
+ 00000067  E8 00000000 E	call writeString
+
+ 0000006C  EB 9C		jmp starthere
+
+ 0000006E			opt2:
+				; Show stats
+ 0000006E  3C 02		cmp al, 2
+ 00000070  75 07		jne quit
+ 00000072  E8 00000000 E	call clrscr
+				; opt2 stuff here
+ 00000077  EB 91		jmp starthere
+
+ 00000079			quit:
 				exit
- 0000000F  6A 00	   *	    push   +000000000h
- 00000011  E8 00000000 E   *	    call   ExitProcess
- 00000016			main ENDP
+ 00000079  6A 00	   *	    push   +000000000h
+ 0000007B  E8 00000000 E   *	    call   ExitProcess
+ 00000080			main ENDP
 
- 00000016			FillMatrix proc, matrixAddr:ptr byte
-				local rowIndex:byte, columnIndex:byte, currentAddr:dword
- 00000016  55		   *	    push   ebp
- 00000017  8B EC	   *	    mov    ebp, esp
- 00000019  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
- 0000001C  60			pushad
- 0000001D  C6 45 FF 05		mov rowIndex, 5
- 00000021  C6 45 FE 05		mov columnIndex, 5
-
- 00000025			rowLoop:
-				; Add 5 * rowIndex + matrixAddr to ebx to update row position
- 00000025  FE 4D FF		dec rowIndex
- 00000028  8B 5D 08		mov ebx, matrixAddr
- 0000002B  0F B6 4D FF		movzx ecx, rowIndex
- 0000002F  C6 45 FE 05		mov columnIndex, 5
- 00000033  80 7D FF 00		cmp rowIndex, 0
- 00000037  74 05		jz columnLoop
- 00000039			loop1:
- 00000039  83 C3 05		add ebx, 5
- 0000003C  E2 FB		loop loop1
-
- 0000003E			columnLoop:
-				; Update current column index
- 0000003E  0F B6 75 FE		movzx esi, columnIndex
-
-				; Put random letter in address
- 00000042  89 5D F8		mov currentAddr, ebx
- 00000045  01 75 F8		add currentAddr, esi
-				invoke GetRandomLetter, currentAddr
- 00000048  FF 75 F8	   *	    push   dword  ptr ss:[ebp]+0FFFFFFF8h
- 0000004B  E8 0000002A	   *	    call   GetRandomLetter
-
-				; Loop if needed
- 00000050  FE 4D FE		dec columnIndex
- 00000053  80 7D FE 00		cmp columnIndex, 0
- 00000057  77 E5		ja columnLoop
- 00000059  80 7D FF FF		cmp rowIndex, -1
- 0000005D  7F C6		jg rowLoop
-
- 0000005F  61			popad
- 00000060  C9		   *	    leave  
- 00000061  C2 0004		ret 4
- 00000064			FillMatrix endp
-
-				; -----------------------------------------------------------------------------
- 00000064			Modulo proc, divisor:byte, dividend:byte
-				; Performs a Modulo operation on an integer
+ 00000080			UpdateDisplayString proc
+				; Description:
+				; Updates the string that is displayed to the user during gameplay
+				; Displays an underscore for letters that the user has not guessed yet,
+				; and displays letters that the user has already correctly guessed.
+				; Seperates each character with a space
+				;
+				; Receives:
+				; EDX: Offset of display string (displayWord)
+				; EAX: Offset of string of characters the user has guessed already (lettersGuessed)
+				; EBX: Offset of string the user is trying to guess (guessWord)
+				; 
 				; Returns:
-				; EAX: result
- 00000064  55		   *	    push   ebp
- 00000065  8B EC	   *	    mov    ebp, esp
- 00000067  B8 00000000		mov eax, 0          ; Clear EAX
- 0000006C  8A 45 0C		mov al, dividend    ; Set dividend
- 0000006F  F6 75 08		div divisor         ; Divide by divisor
- 00000072  8A C4		mov al, ah          ; Move result to al so it's all nice and tidy
- 00000074  B4 00		mov ah, 0           ; Get rid of pesky leftovers
- 00000076  C9		   *	    leave  
- 00000077  C2 0008		ret 8               ; Bam, done.
- 0000007A			Modulo endp
+				; EDX: Offset of updated display string
+				; 
+				; Requires:
+				; guessWord must be length of 14 characters, displayWord twice that
+ 0000006F			.data
+ 0000006F 00			currentLetter byte 0
+ 00000070 00			currentGuessedLetter byte 0
+ 00000071 57 6F 72 64 20	displayStringStart byte 'Word =',0
+	   3D 00
 
-				; -----------------------------------------------------------------------------
- 0000007A			GetRandomLetter proc, letterPtr:ptr byte
-				; Replaces the contents of the byte at the address passed in through letterPtr
-				; with the ascii value of a random capital letter.
-				; This letter has a 50% chance of being a vowel and a 50% chance of being
-				; a consonant.
+ 00000080			.code
+ 00000080  51			push ecx
+ 00000081  56			push esi
+ 00000082  B9 0000000E		mov ecx, 14
+ 00000087  BE 00000000		mov esi, 0
 
-				; Setup
-				local divisor:byte, dividend:byte, vowels[5]:byte
- 0000007A  55		   *	    push   ebp
- 0000007B  8B EC	   *	    mov    ebp, esp
- 0000007D  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
- 00000080  C6 45 FF 02		mov divisor, 2      ; Used to find modulo 2 of a number
- 00000084  C6 45 F9 41		mov vowels[0], 'A'
- 00000088  C6 45 FA 45		mov vowels[1], 'E'
- 0000008C  C6 45 FB 49		mov vowels[2], 'I'
- 00000090  C6 45 FC 4F		mov vowels[3], 'O'
- 00000094  C6 45 FD 55		mov vowels[4], 'U'
- 00000098  8B 75 08		mov esi, letterPtr
- 0000009B  60			pushad
+				; Display "Word =" before displaying displayWord
+ 0000008C  52			push edx
+ 0000008D  BA 00000071 R	mov edx, offset displayStringStart
+ 00000092  E8 00000000 E	call WriteString
+ 00000097  5A			pop edx
 
-				; First decide whether the letter is a vowel or consonant
- 0000009C  B8 00000064		mov eax, 100
- 000000A1  E8 00000000 E	call RandomRange
- 000000A6  88 45 FE		mov dividend, al
-				invoke Modulo, divisor, dividend
- 000000A9  8A 45 FE	   *	    mov    al, byte  ptr ss:[ebp]+0FEh
- 000000AC  50		   *	    push   eax
- 000000AD  8A 45 FF	   *	    mov    al, byte  ptr ss:[ebp]+0FFh
- 000000B0  50		   *	    push   eax
- 000000B1  E8 FFFFFFAE	   *	    call   Modulo
- 000000B6  83 F8 00		cmp eax, 0
- 000000B9  74 13		je get_consonant
+				; Now we find out what to display to the user
+ 00000098			loop1Start:
+ 00000098  50			push eax
+ 00000099  8A 04 1E		mov al, byte ptr [ebx + esi]
+ 0000009C  A2 0000006F R	mov currentLetter, al
+ 000000A1  58			pop eax
 
-				; If vowel
- 000000BB  B8 00000005		mov eax, 5
- 000000C0  E8 00000000 E	call RandomRange
- 000000C5  36: 8A 5C 28		mov bl, vowels[eax]
-	   F9
- 000000CA  88 1E		mov [esi], bl
- 000000CC  EB 1F		jmp done
+				; If the current character is null, return
+ 000000A2  80 3D 0000006F R	cmp currentLetter, 0
+	   00
+ 000000A9  74 5E		jz loop1End
 
-				; If consonant
- 000000CE			get_consonant:
-				; First get ascii code of a random capital letter
- 000000CE  B8 0000001A		mov eax, 26
- 000000D3  E8 00000000 E	call RandomRange
- 000000D8  83 C0 41		add eax, 'A'
+				; Now if the current letter is in lettersGuessed, we put that letter in displayWord
+ 000000AB  56			push esi
+ 000000AC  BE FFFFFFFF		mov esi, -1
+ 000000B1			loop2Start:
+ 000000B1  46			inc esi
+ 000000B2  53			push ebx
+ 000000B3  8A 1C 06		mov bl, byte ptr [eax + esi]
+ 000000B6  88 1D 00000070 R	mov currentGuessedLetter, bl
+ 000000BC  5B			pop ebx
 
-				; Next we'll have to check if the letter is a vowel
-				; by checking our random ascii code against all vowel codes
- 000000DB  B9 00000005		mov ecx, 5
- 000000E0			find_vowel_loop:
- 000000E0  8B D9		mov ebx, ecx
- 000000E2  36: 3A 44 2B		cmp al, vowels[ebx]
-	   F9
- 000000E7  74 E5		je get_consonant    ; If our code matches one in the vowels array, start over
- 000000E9  E2 F5		loop find_vowel_loop
-				; If we're here, we have a consonant.
- 000000EB  88 06		mov [esi], al
+				; If the current character is null, the user hasn't guess this one yet: add an underscore
+ 000000BD  80 3D 00000070 R	cmp currentGuessedLetter, 0
+	   00
+ 000000C4  75 09		jnz loop2Continue
+ 000000C6  C6 05 0000006F R	mov currentLetter, '_'
+	   5F
+ 000000CD  EB 0F		jmp loop2end
 
- 000000ED			done:
- 000000ED  61			popad
- 000000EE  C9		   *	    leave  
- 000000EF  C2 0004		ret 4
- 000000F2			GetRandomLetter endp
+ 000000CF			loop2Continue:
+ 000000CF  50			push eax
+ 000000D0  A0 00000070 R	mov al, currentGuessedLetter
+ 000000D5  3A 05 0000006F R	cmp al, currentLetter
+ 000000DB  58			pop eax
+ 000000DC  75 D3		jne loop2Start      ; If the current letter in lettersGuessed does not equal the one
+				                    ; in the word the user is trying to guess, move on to the next one
+
+ 000000DE			loop2end:
+ 000000DE  5E			pop esi
+ 000000DF  50			push eax
+
+				; Add new character to displayWord
+ 000000E0  56			push esi
+ 000000E1  53			push ebx
+				; We need to reference displayWord every other character,
+				; so we multiply esi by 2 temporarily
+ 000000E2  8B C6		mov eax, esi
+ 000000E4  B3 02		mov bl, 2
+ 000000E6  F6 E3		mul bl
+ 000000E8  8B F0		mov esi, eax
+ 000000EA  A0 0000006F R	mov al, currentLetter
+ 000000EF  88 04 16		mov [edx + esi], al
+ 000000F2  46			inc esi
+
+				; Add a space before next character
+ 000000F3  C6 05 0000006F R	mov currentLetter, ' '
+	   20
+ 000000FA  8A 25 0000006F R	mov ah, currentLetter
+ 00000100  88 24 16		mov [edx + esi], ah
+ 00000103  5B			pop ebx
+ 00000104  5E			pop esi
+ 00000105  58			pop eax
+ 00000106  46			inc esi
+ 00000107  E2 8F		loop loop1Start
+
+ 00000109			loop1End:
+ 00000109  5E			pop esi
+ 0000010A  59			pop ecx
+ 0000010B  C3			ret
+ 0000010C			UpdateDisplayString endp
+
+ 0000010C			GetRandomString proc
+				; Description:
+				; Chooses a string for the user to guess
+				; 
+				; Receives:
+				; EDX: Offset of string to store result in
+				;
+				; Returns:
+				; EDX: Offset of string
+				;
+				; Requires:
+				; Length of string must be at least 14 characters long
+ 00000078			.data
+ 00000078 6B 69 77 69 00	String0 BYTE "kiwi", 0h
+ 0000007D 63 61 6E 6F 65	String1 BYTE "canoe", 0h
+	   00
+ 00000083 64 6F 62 65 72	String2 BYTE "doberman", 0h
+	   6D 61 6E 00
+ 0000008C 70 75 70 70 79	String3 BYTE "puppy", 0h
+	   00
+ 00000092 62 61 6E 61 6E	String4 BYTE "banana", 0h
+	   61 00
+ 00000099 6F 72 61 6E 67	String5 BYTE "orange", 0h
+	   65 00
+ 000000A0 66 72 69 67 61	String6 BYTE "frigate", 0h
+	   74 65 00
+ 000000A8 6B 65 74 63 68	String7 BYTE "ketchup", 0h
+	   75 70 00
+ 000000B0 70 6F 73 74 61	String8 BYTE "postal", 0h
+	   6C 00
+ 000000B7 62 61 73 6B 65	String9 BYTE "basket", 0h
+	   74 00
+ 000000BE 63 61 62 69 6E	String10 BYTE "cabinet", 0h
+	   65 74 00
+ 000000C6 6D 75 74 74 00	String11 BYTE "mutt", 0h
+ 000000CB 6D 61 63 68 69	String12 BYTE "machine", 0h
+	   6E 65 00
+ 000000D3 6D 69 73 73 69	String13 BYTE "mississippian", 0h
+	   73 73 69 70 70
+	   69 61 6E 00
+ 000000E1 64 65 73 74 72	String14 BYTE "destroyer", 0h
+	   6F 79 65 72 00
+ 000000EB 7A 6F 6F 6D 69	String15 BYTE "zoomies", 0h
+	   65 73 00
+ 000000F3 62 6F 64 79 00	String16 BYTE "body", 0h
+ 000000F8 6D 79 00		String17 BYTE "my", 0h
+ 000000FB 74 68 72 65 65	String18 BYTE "three", 0h
+	   00
+ 00000101 77 6F 72 64 73	String19 BYTE "words", 0h
+	   00
+
+ 00000107 00000000		wordNumber DWORD 0
+
+ 0000010C			.code
+ 0000010C  50			push eax
+
+				; First we're going to choose a random number from 0 - 19
+ 0000010D  B8 00000014		mov eax, 20
+ 00000112  E8 00000000 E	call RandomRange
+ 00000117  A3 00000107 R	mov wordNumber, eax
+
+ 0000011C  B8 00000000		mov eax, 0   ; Our word counter
+
+				; Now we're going to loop through every letter of every String defined in the
+				; .data section, incrementing eax each time we come across a null character
+				; Once wordNumber is equal to eax, we know we're on the first character of
+				; the word we need.
+ 00000121  56			push esi
+ 00000122  BE 00000000		mov esi, 0
+
+ 00000127			continue:
+				; If the word we're on is the one we want, we're done
+ 00000127  3B 05 00000107 R	cmp eax, wordNumber
+ 0000012D  74 10		je done
+
+				; See if current character is a null character
+ 0000012F  80 BE 00000078 R	cmp String0[esi], 0
+	   00
+ 00000136  75 04		jnz continue2   ; If not, continue to next character
+
+				; If we've come across a null character, increment eax. We're on the next word.
+ 00000138  40			inc eax
+ 00000139  46			inc esi
+ 0000013A  EB EB		jmp continue
+
+ 0000013C			continue2:
+ 0000013C  46			inc esi
+ 0000013D  EB E8		jmp continue
+
+ 0000013F			done:
+				; Now that we've found the start of the word we're looking for, we store the
+				; word itself into the string at the offset in edx
+ 0000013F  B8 00000078 R	mov eax, offset String0
+ 00000144  03 C6		add eax, esi
+ 00000146  BE 00000000		mov esi, 0
+ 0000014B  53			push ebx
+
+ 0000014C			continue3:
+ 0000014C  8A 1C 06		mov bl, byte ptr [eax + esi]
+ 0000014F  88 1C 16		mov [edx + esi], bl
+ 00000152  46			inc esi
+ 00000153  80 FB 00		cmp bl, 0 
+ 00000156  75 F4		jne continue3 ; If we haven't hit a null character, continue moving letters
+
+ 00000158			done2:
+ 00000158  5B			pop ebx
+ 00000159  5E			pop esi
+ 0000015A  58			pop eax
+ 0000015B  C3			ret
+ 0000015C			GetRandomString endp
+
+ 0000015C			ChangeCase proc
+				; Description:  Converts all lowercase letters in string to uppercase
+				;
+				; Receives:
+				; EDX: Offset of string array
+				; EBX: Length of string array
+				;
+				; Returns:  
+				; EDX: String array with converted letters, if any
+ 0000015C  56			push esi
+ 0000015D  50			push eax
+ 0000015E  51			push ecx
+ 0000015F  BE 00000000		clearESI
+ 00000164  0F B6 0B		movzx ecx, byte ptr [ebx]
+
+ 00000167			letterLoop:
+ 00000167  8A 04 16		mov al, byte ptr [edx+esi]
+ 0000016A  3C 61		cmp al, 'a'
+ 0000016C  72 09		jb keepgoing
+ 0000016E  3C 7A		cmp al, 'z'
+ 00000170  77 05		ja keepgoing
+ 00000172  2C 20		sub al, 20h
+ 00000174  88 04 16		mov byte ptr [edx+esi], al
+ 00000177			keepgoing:
+ 00000177  46			inc esi
+ 00000178  E2 ED		loop letterLoop
+
+ 0000017A  59			pop ecx
+ 0000017B  58			pop eax
+ 0000017C  5E			pop esi
+ 0000017D  C3			ret
+ 0000017E			ChangeCase endp
+
+ 0000017E			ClearRegisters Proc
+				; Description:  
+				; Clears the registers EAX, EBX, ECX, EDX, ESI, EDI
+				;
+				; Requires:  
+				; Nothing
+				;
+				; Returns:  
+				; Nothing, but all registers will be cleared.
+
+ 0000017E  B8 00000000		cleareax
+ 00000183  BB 00000000		clearebx
+ 00000188  B9 00000000		clearecx
+ 0000018D  BA 00000000		clearedx
+ 00000192  BE 00000000		clearesi
+ 00000197  BF 00000000		clearedi
+
+ 0000019C  C3			ret
+ 0000019D			ClearRegisters ENDP
+
+ 0000019D			DisplayDirections proc
+ 0000010B			.data
+ 0000010B 20 5F 5F 20 20	ddstring1 byte " __   __  _______  __    _  _______  __   __  _______  __    _ ",0Ah, 0Dh,
+	   20 5F 5F 20 20
+	   5F 5F 5F 5F 5F
+	   5F 5F 20 20 5F
+	   5F 20 20 20 20
+	   5F 20 20 5F 5F
+	   5F 5F 5F 5F 5F
+	   20 20 5F 5F 20
+	   20 20 5F 5F 20
+	   20 5F 5F 5F 5F
+	   5F 5F 5F 20 20
+	   5F 5F 20 20 20
+	   20 5F 20 0A 0D
+	   7C 20 20 7C 20
+	   7C 20 20 7C 7C
+	   20 20 20 5F 20
+	   20 20 7C 7C 20
+	   20 7C 20 20 7C
+	   20 7C 7C 20 20
+	   20 20 20 20 20
+	   7C 7C 20 20 7C
+	   5F 7C 20 20 7C
+	   7C 20 20 20 5F
+	   20 20 20 7C 7C
+	   20 20 7C 20 20
+	   7C 20 7C 0A 0D
+	   7C 20 20 7C 5F
+	   7C 20 20 7C 7C
+	   20 20 7C 5F 7C
+	   20 20 7C 7C 20
+	   20 20 7C 5F 7C
+	   20 7C 7C 20 20
+	   20 20 5F 5F 5F
+	   7C 7C 20 20 20
+	   20 20 20 20 7C
+	   7C 20 20 7C 5F
+	   7C 20 20 7C 7C
+	   20 20 20 7C 5F
+	   7C 20 7C 0A 0D
+	   7C 20 20 20 20
+	   20 20 20 7C 7C
+	   20 20 20 20 20
+	   20 20 7C 7C 20
+	   20 20 20 20 20
+	   20 7C 7C 20 20
+	   20 7C 20 5F 5F
+	   20 7C 20 20 20
+	   20 20 20 20 7C
+	   7C 20 20 20 20
+	   20 20 20 7C 7C
+	   20 20 20 20 20
+	   20 20 7C 0A 0D
+	   7C 20 20 20 20
+	   20 20 20 7C 7C
+	   20 20 20 20 20
+	   20 20 7C 7C 20
+	   20 5F 20 20 20
+	   20 7C 7C 20 20
+	   20 7C 7C 20 20
+	   7C 7C 20 20 20
+	   20 20 20 20 7C
+	   7C 20 20 20 20
+	   20 20 20 7C 7C
+	   20 20 5F 20 20
+	   20 20 7C 0A 0D
+	   7C 20 20 20 5F
+	   20 20 20 7C 7C
+	   20 20 20 5F 20
+	   20 20 7C 7C 20
+	   7C 20 7C 20 20
+	   20 7C 7C 20 20
+	   20 7C 5F 7C 20
+	   7C 7C 20 7C 7C
+	   5F 7C 7C 20 7C
+	   7C 20 20 20 5F
+	   20 20 20 7C 7C
+	   20 7C 20 7C 20
+	   20 20 7C 0A 0D
+	   00
+				"|  | |  ||   _   ||  |  | ||       ||  |_|  ||   _   ||  |  | |", 0Ah, 0Dh,
+				"|  |_|  ||  |_|  ||   |_| ||    ___||       ||  |_|  ||   |_| |", 0Ah, 0Dh,
+				"|       ||       ||       ||   | __ |       ||       ||       |", 0Ah, 0Dh,
+				"|       ||       ||  _    ||   ||  ||       ||       ||  _    |", 0Ah, 0Dh,
+				"|   _   ||   _   || | |   ||   |_| || ||_|| ||   _   || | |   |", 0Ah, 0Dh, 0
+ 00000292 7C 5F 5F 7C 20	ddstring2 byte "|__| |__||__| |__||_|  |__||_______||_|   |_||__| |__||_|  |__|", 0Ah, 0Dh, 0Ah, 0Dh,
+	   7C 5F 5F 7C 7C
+	   5F 5F 7C 20 7C
+	   5F 5F 7C 7C 5F
+	   7C 20 20 7C 5F
+	   5F 7C 7C 5F 5F
+	   5F 5F 5F 5F 5F
+	   7C 7C 5F 7C 20
+	   20 20 7C 5F 7C
+	   7C 5F 5F 7C 20
+	   7C 5F 5F 7C 7C
+	   5F 7C 20 20 7C
+	   5F 5F 7C 0A 0D
+	   0A 0D 42 79 20
+	   43 6F 64 79 20
+	   4B 65 6C 6C 79
+	   0A 0D 0A 0D 59
+	   6F 75 27 72 65
+	   20 73 6F 6D 65
+	   77 68 65 72 65
+	   20 69 6E 20 74
+	   68 65 20 77 65
+	   73 74 65 72 6E
+	   20 55 6E 69 74
+	   65 64 20 53 74
+	   61 74 65 73 2C
+	   20 63 69 72 63
+	   61 20 31 38 38
+	   35 2E 20 44 75
+	   73 74 20 62 6C
+	   6F 77 73 20 61
+	   72 6F 75 6E 64
+	   20 0A 0D 79 6F
+	   75 72 20 66 65
+	   65 74 20 61 6E
+	   64 20 74 68 65
+	   20 62 6C 69 6E
+	   64 69 6E 67 20
+	   73 75 6E 20 62
+	   65 61 6D 73 20
+	   64 6F 77 6E 20
+	   6F 6E 74 6F 20
+	   79 6F 75 72 20
+	   68 65 61 64 20
+	   61 73 20 74 68
+	   65 20 0A 0D 0A
+	   0D 49 4E 53 54
+	   52 55 43 54 49
+	   4F 4E 53 3A 0A
+	   0D 59 6F 75 20
+	   6D 75 73 74 20
+	   63 6F 72 72 65
+	   63 74 6C 79 20
+	   67 75 65 73 73
+	   20 61 20 72 61
+	   6E 64 6F 6D 20
+	   6D 79 73 74 65
+	   72 79 20 77 6F
+	   72 64 20 67 69
+	   76 65 6E 20 74
+	   6F 20 79 6F 75
+	   2E 20 59 6F 75
+	   20 6D 61 79 20
+	   63 68 6F 6F 73
+	   65 20 0A 0D 00
+				"By Cody Kelly", 0Ah, 0Dh, 0Ah, 0Dh,
+				"You're somewhere in the western United States, circa 1885. Dust blows around ", 0Ah, 0Dh,
+				"your feet and the blinding sun beams down onto your head as the ", 0Ah, 0Dh, 0Ah, 0Dh,
+				"INSTRUCTIONS:", 0Ah, 0Dh,
+				"You must correctly guess a random mystery word given to you. You may choose ", 0Ah, 0Dh, 0
+ 000003D7 74 6F 20 65 69	ddstring3 byte "to either guess letters contained in the word, or, at any time, guess the ", 0Ah, 0Dh, 
+	   74 68 65 72 20
+	   67 75 65 73 73
+	   20 6C 65 74 74
+	   65 72 73 20 63
+	   6F 6E 74 61 69
+	   6E 65 64 20 69
+	   6E 20 74 68 65
+	   20 77 6F 72 64
+	   2C 20 6F 72 2C
+	   20 61 74 20 61
+	   6E 79 20 74 69
+	   6D 65 2C 20 67
+	   75 65 73 73 20
+	   74 68 65 20 0A
+	   0D 77 68 6F 6C
+	   65 20 77 6F 72
+	   64 20 61 74 20
+	   6F 6E 63 65 2E
+	   20 42 55 54 21
+	   20 59 6F 75 20
+	   6F 6E 6C 79 20
+	   68 61 76 65 20
+	   54 45 4E 20 63
+	   68 61 6E 63 65
+	   73 20 74 6F 20
+	   63 6F 72 72 65
+	   63 74 6C 79 20
+	   67 75 65 73 73
+	   20 61 20 0A 0D
+	   6C 65 74 74 65
+	   72 20 69 6E 20
+	   74 68 65 20 77
+	   6F 72 64 2C 20
+	   61 6E 64 20 79
+	   6F 75 20 6F 6E
+	   6C 79 20 68 61
+	   76 65 20 54 48
+	   52 45 45 20 63
+	   68 61 6E 63 65
+	   73 20 74 6F 20
+	   63 6F 72 72 65
+	   63 74 6C 79 20
+	   67 75 65 73 73
+	   20 74 68 65 20
+	   0A 0D 77 68 6F
+	   6C 65 20 77 6F
+	   72 64 20 61 74
+	   20 6F 6E 63 65
+	   2E 20 49 66 20
+	   79 6F 75 20 72
+	   75 6E 20 6F 75
+	   74 20 6F 66 20
+	   6C 65 74 74 65
+	   72 73 20 74 6F
+	   20 67 75 65 73
+	   73 2C 20 79 6F
+	   75 20 6D 61 79
+	   20 74 72 79 20
+	   61 6E 64 20 0A
+	   0D 00
+				"whole word at once. BUT! You only have TEN chances to correctly guess a ", 0Ah, 0Dh,
+				"letter in the word, and you only have THREE chances to correctly guess the ", 0Ah, 0Dh,
+				"whole word at once. If you run out of letters to guess, you may try and ", 0Ah, 0Dh, 0
+ 00000505 67 75 65 73 73	ddstring4 byte "guess the word, and vice versa. If you correctly guess every letter in the ", 0Ah, 0Dh,
+	   20 74 68 65 20
+	   77 6F 72 64 2C
+	   20 61 6E 64 20
+	   76 69 63 65 20
+	   76 65 72 73 61
+	   2E 20 49 66 20
+	   79 6F 75 20 63
+	   6F 72 72 65 63
+	   74 6C 79 20 67
+	   75 65 73 73 20
+	   65 76 65 72 79
+	   20 6C 65 74 74
+	   65 72 20 69 6E
+	   20 74 68 65 20
+	   0A 0D 77 6F 72
+	   64 20 6F 72 20
+	   63 6F 72 72 65
+	   63 74 6C 79 20
+	   67 75 65 73 73
+	   20 74 68 65 20
+	   77 68 6F 6C 65
+	   20 77 6F 72 64
+	   2C 20 79 6F 75
+	   20 77 69 6E 21
+	   21 20 0A 0D 42
+	   75 74 20 69 66
+	   20 79 6F 75 20
+	   72 75 6E 20 6F
+	   75 74 20 6F 66
+	   20 61 6C 6C 20
+	   79 6F 75 72 20
+	   67 75 65 73 73
+	   65 73 2C 20 0A
+	   0D 0A 0D 77 65
+	   6C 6C 2E 2E 2E
+	   0A 0D 00
+				"word or correctly guess the whole word, you win!! ", 0Ah, 0Dh, 
+				"But if you run out of all your guesses, ", 0Ah, 0Dh, 0Ah, 0Dh,
+				"well...", 0Ah, 0Dh, 0
+
+ 0000019D			.code
+ 0000019D  52			push edx
+ 0000019E  BA 0000010B R	mov edx, offset ddstring1
+ 000001A3  E8 00000000 E	call writestring
+ 000001A8  BA 00000292 R	mov edx, offset ddstring2
+ 000001AD  E8 00000000 E	call writestring
+ 000001B2  BA 000003D7 R	mov edx, offset ddstring3
+ 000001B7  E8 00000000 E	call writestring
+ 000001BC  BA 00000505 R	mov edx, offset ddstring4
+ 000001C1  E8 00000000 E	call writestring
+ 000001C6  E8 00000000 E	call crlf
+ 000001CB  E8 00000000 E	call waitmsg
+ 000001D0  5A			pop edx
+ 000001D1  C3			ret
+ 000001D2			DisplayDirections endp
+
+ 000001D2			MenuPrompt proc
+				; Description:  
+				; Displays a menu prompt and receives a choice from 1 to n number of choices
+				; 
+				; Receives: 
+				; EDX: Offset of prompt
+				; EBX: Maximum user choice (n)
+				; 
+				; Returns:  
+				; EAX: User choice
+ 000005BC			.data
+ 000005BC 59 6F 75 20 68	errorMessage byte 'You have entered an invalid option. Please try again.', 0Ah, 0Dh, 0h
+	   61 76 65 20 65
+	   6E 74 65 72 65
+	   64 20 61 6E 20
+	   69 6E 76 61 6C
+	   69 64 20 6F 70
+	   74 69 6F 6E 2E
+	   20 50 6C 65 61
+	   73 65 20 74 72
+	   79 20 61 67 61
+	   69 6E 2E 0A 0D
+	   00
+
+ 000001D2			.code
+ 000001D2  E8 00000000 E	call clrscr
+ 000001D7  53			push ebx
+ 000001D8  8B C3		mov eax, ebx
+
+ 000001DA			start:
+				; Display menu
+ 000001DA  E8 00000000 E	call WriteString
+
+				; Get choice
+ 000001DF  E8 00000000 E	call ReadHex
+
+				; Check if choice is valid
+ 000001E4  3A C3		cmp al, bl
+ 000001E6  77 06		ja error
+ 000001E8  3C 01		cmp al, 1
+ 000001EA  72 02		jb error
+ 000001EC  EB 1D		jmp done
+
+ 000001EE			error:
+ 000001EE  E8 00000000 E	call clrscr
+ 000001F3  52			push edx
+ 000001F4  BA 000005BC R	mov edx, offset errormessage
+ 000001F9  E8 00000000 E	call writestring
+ 000001FE  E8 00000000 E	call waitmsg
+ 00000203  5A			pop edx
+ 00000204  E8 00000000 E	call clrscr
+ 00000209  EB CF		jmp start
+
+ 0000020B			done:
+ 0000020B  5B			pop ebx
+ 0000020C  C3			ret
+ 0000020D			MenuPrompt endp
+
+ 0000020D			ClearString proc
+				; Description:
+				; Clears a string
+				; 
+				; Receives:
+				; EDX: Offset of string
+				; ECX: Length of string
+ 0000020D  51			push ecx
+ 0000020E  56			push esi
+ 0000020F  BE 00000000		mov esi, 0
+ 00000214			clearLoop:
+ 00000214  C6 04 16 00		mov byte ptr [edx + esi], 0
+ 00000218  46			inc esi
+ 00000219  E2 F9		loop clearLoop
+ 0000021B  5E			pop esi
+ 0000021C  59			pop ecx
+ 0000021D  C3			ret
+ 0000021E			ClearString endp
 
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    04/25/18 23:19:50
-: Matrix.as						     Symbols 2 - 1
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    04/15/18 23:52:10
+: test2.as						     Symbols 2 - 1
 
 
 
@@ -274,14 +846,20 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 0000000F Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000000F2 Para	  Public  'CODE'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 000005F4 Para	  Public  'DATA'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 0000021E Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
 
                 N a m e                 Type     Value    Attr
 
+ChangeCase . . . . . . . . . . .	P Near	 0000015C _TEXT	Length= 00000022 Public STDCALL
+  letterLoop . . . . . . . . . .	L Near	 00000167 _TEXT	
+  keepgoing  . . . . . . . . . .	L Near	 00000177 _TEXT	
+ClearRegisters . . . . . . . . .	P Near	 0000017E _TEXT	Length= 0000001F Public STDCALL
+ClearString  . . . . . . . . . .	P Near	 0000020D _TEXT	Length= 00000011 Public STDCALL
+  clearLoop  . . . . . . . . . .	L Near	 00000214 _TEXT	
 CloseFile  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 CloseHandle  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Clrscr . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -289,19 +867,12 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+DisplayDirections  . . . . . . .	P Near	 0000019D _TEXT	Length= 00000035 Public STDCALL
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToDosDateTime  . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FileTimeToSystemTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-FillMatrix . . . . . . . . . . .	P Near	 00000016 _TEXT	Length= 0000004E Public STDCALL
-  matrixAddr . . . . . . . . . .	DWord	 bp + 00000008
-  rowIndex . . . . . . . . . . .	Byte	 bp - 00000001
-  columnIndex  . . . . . . . . .	Byte	 bp - 00000002
-  currentAddr  . . . . . . . . .	DWord	 bp - 00000008
-  rowLoop  . . . . . . . . . . .	L Near	 00000025 _TEXT	
-  loop1  . . . . . . . . . . . .	L Near	 00000039 _TEXT	
-  columnLoop . . . . . . . . . .	L Near	 0000003E _TEXT	
 FlushConsoleInputBuffer  . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 FormatMessageA . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetCommandLineA  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -319,14 +890,12 @@ GetMaxXY . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 GetMseconds  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetNumberOfConsoleInputEvents  .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetProcessHeap . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-GetRandomLetter  . . . . . . . .	P Near	 0000007A _TEXT	Length= 00000078 Public STDCALL
-  letterPtr  . . . . . . . . . .	DWord	 bp + 00000008
-  divisor  . . . . . . . . . . .	Byte	 bp - 00000001
-  dividend . . . . . . . . . . .	Byte	 bp - 00000002
-  vowels . . . . . . . . . . . .	Byte	 bp - 00000007
-  get_consonant  . . . . . . . .	L Near	 000000CE _TEXT	
-  find_vowel_loop  . . . . . . .	L Near	 000000E0 _TEXT	
-  done . . . . . . . . . . . . .	L Near	 000000ED _TEXT	
+GetRandomString  . . . . . . . .	P Near	 0000010C _TEXT	Length= 00000050 Public STDCALL
+  continue . . . . . . . . . . .	L Near	 00000127 _TEXT	
+  continue2  . . . . . . . . . .	L Near	 0000013C _TEXT	
+  done . . . . . . . . . . . . .	L Near	 0000013F _TEXT	
+  continue3  . . . . . . . . . .	L Near	 0000014C _TEXT	
+  done2  . . . . . . . . . . . .	L Near	 00000158 _TEXT	
 GetStdHandle . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetSystemTime  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 GetTextColor . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -339,10 +908,11 @@ HeapFree . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 HeapSize . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 IsDigit  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 LocalFree  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+MenuPrompt . . . . . . . . . . .	P Near	 000001D2 _TEXT	Length= 0000003B Public STDCALL
+  start  . . . . . . . . . . . .	L Near	 000001DA _TEXT	
+  error  . . . . . . . . . . . .	L Near	 000001EE _TEXT	
+  done . . . . . . . . . . . . .	L Near	 0000020B _TEXT	
 MessageBoxA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-Modulo . . . . . . . . . . . . .	P Near	 00000064 _TEXT	Length= 00000016 Public STDCALL
-  divisor  . . . . . . . . . . .	Byte	 bp + 00000008
-  dividend . . . . . . . . . . .	Byte	 bp + 0000000C
 MsgBoxAsk  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 MsgBox . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 OpenInputFile  . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -383,6 +953,12 @@ Str_length . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 Str_trim . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Str_ucase  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 SystemTimeToFileTime . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
+UpdateDisplayString  . . . . . .	P Near	 00000080 _TEXT	Length= 0000008C Public STDCALL
+  loop1Start . . . . . . . . . .	L Near	 00000098 _TEXT	
+  loop2Start . . . . . . . . . .	L Near	 000000B1 _TEXT	
+  loop2Continue  . . . . . . . .	L Near	 000000CF _TEXT	
+  loop2end . . . . . . . . . . .	L Near	 000000DE _TEXT	
+  loop1End . . . . . . . . . . .	L Near	 00000109 _TEXT	
 WaitMsg  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBinB  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteBin . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
@@ -401,7 +977,11 @@ WriteStackFrame  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 WriteString  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteToFile  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 WriteWindowsMsg  . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000016 Public STDCALL
+main . . . . . . . . . . . . . .	P Near	 00000000 _TEXT	Length= 00000080 Public STDCALL
+  startHere  . . . . . . . . . .	L Near	 0000000A _TEXT	
+  opt1 . . . . . . . . . . . . .	L Near	 00000019 _TEXT	
+  opt2 . . . . . . . . . . . . .	L Near	 0000006E _TEXT	
+  quit . . . . . . . . . . . . .	L Near	 00000079 _TEXT	
 printf . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 scanf  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
 wsprintfA  . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External C
@@ -425,6 +1005,12 @@ CAPSLOCK_ON  . . . . . . . . . .	Number	 00000080h
 CREATE_ALWAYS  . . . . . . . . .	Number	 00000002h   
 CREATE_NEW . . . . . . . . . . .	Number	 00000001h   
 CTRL_MASK  . . . . . . . . . . .	Number	 0000000Ch   
+ClearEAX . . . . . . . . . . . .	Text   	 mov eax, 0
+ClearEBX . . . . . . . . . . . .	Text   	 mov ebx, 0
+ClearECX . . . . . . . . . . . .	Text   	 mov ecx, 0
+ClearEDI . . . . . . . . . . . .	Text   	 mov edi, 0
+ClearEDX . . . . . . . . . . . .	Text   	 mov edx, 0
+ClearESI . . . . . . . . . . . .	Text   	 mov esi, 0
 CreateFile . . . . . . . . . . .	Text   	 CreateFileA
 DO_NOT_SHARE . . . . . . . . . .	Number	 00000000h   
 ENABLE_ECHO_INPUT  . . . . . . .	Number	 00000004h   
@@ -536,6 +1122,26 @@ STD_ERROR_HANDLE . . . . . . . .	Number	 -0000000Ch
 STD_INPUT_HANDLE . . . . . . . .	Number	 -0000000Ah   
 STD_OUTPUT_HANDLE  . . . . . . .	Number	 -0000000Bh   
 SetConsoleTitle  . . . . . . . .	Text   	 SetConsoleTitleA
+String0  . . . . . . . . . . . .	Byte	 00000078 _DATA	
+String10 . . . . . . . . . . . .	Byte	 000000BE _DATA	
+String11 . . . . . . . . . . . .	Byte	 000000C6 _DATA	
+String12 . . . . . . . . . . . .	Byte	 000000CB _DATA	
+String13 . . . . . . . . . . . .	Byte	 000000D3 _DATA	
+String14 . . . . . . . . . . . .	Byte	 000000E1 _DATA	
+String15 . . . . . . . . . . . .	Byte	 000000EB _DATA	
+String16 . . . . . . . . . . . .	Byte	 000000F3 _DATA	
+String17 . . . . . . . . . . . .	Byte	 000000F8 _DATA	
+String18 . . . . . . . . . . . .	Byte	 000000FB _DATA	
+String19 . . . . . . . . . . . .	Byte	 00000101 _DATA	
+String1  . . . . . . . . . . . .	Byte	 0000007D _DATA	
+String2  . . . . . . . . . . . .	Byte	 00000083 _DATA	
+String3  . . . . . . . . . . . .	Byte	 0000008C _DATA	
+String4  . . . . . . . . . . . .	Byte	 00000092 _DATA	
+String5  . . . . . . . . . . . .	Byte	 00000099 _DATA	
+String6  . . . . . . . . . . . .	Byte	 000000A0 _DATA	
+String7  . . . . . . . . . . . .	Byte	 000000A8 _DATA	
+String8  . . . . . . . . . . . .	Byte	 000000B0 _DATA	
+String9  . . . . . . . . . . . .	Byte	 000000B7 _DATA	
 TAB  . . . . . . . . . . . . . .	Number	 00000009h   
 TRUE . . . . . . . . . . . . . .	Number	 00000001h   
 TRUNCATE_EXISTING  . . . . . . .	Number	 00000005h   
@@ -623,10 +1229,23 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
+currentGuessedLetter . . . . . .	Byte	 00000070 _DATA	
+currentLetter  . . . . . . . . .	Byte	 0000006F _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
+ddstring1  . . . . . . . . . . .	Byte	 0000010B _DATA	
+ddstring2  . . . . . . . . . . .	Byte	 00000292 _DATA	
+ddstring3  . . . . . . . . . . .	Byte	 000003D7 _DATA	
+ddstring4  . . . . . . . . . . .	Byte	 00000505 _DATA	
+displayStringStart . . . . . . .	Byte	 00000071 _DATA	
+displayWord  . . . . . . . . . .	Byte	 00000045 _DATA	
+errorMessage . . . . . . . . . .	Byte	 000005BC _DATA	
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
+gamesLost  . . . . . . . . . . .	Byte	 0000006E _DATA	
+gamesWon . . . . . . . . . . . .	Byte	 0000006D _DATA	
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
+guessWord  . . . . . . . . . . .	Byte	 00000037 _DATA	
+lettersGuessed . . . . . . . . .	Byte	 00000061 _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -634,9 +1253,13 @@ lightGreen . . . . . . . . . . .	Number	 0000000Ah
 lightMagenta . . . . . . . . . .	Number	 0000000Dh   
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
-matrix . . . . . . . . . . . . .	Byte	 00000000 _DATA	
+mainMenuPrompt . . . . . . . . .	Byte	 00000001 _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
+remainingLetterGuesses . . . . .	Byte	 0000006C _DATA	
+remainingWordGuesses . . . . . .	Byte	 0000006B _DATA	
+userChoice . . . . . . . . . . .	Byte	 00000000 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
+wordNumber . . . . . . . . . . .	DWord	 00000107 _DATA	
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
 
