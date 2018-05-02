@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/01/18 22:47:28
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 06:00:54
 : Final.as						     Page 1 - 1
 
 
@@ -335,7 +335,19 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/01/18 22:47:28
  00000171  C2 0004		ret 4
  00000174			ChooseFirstPlayer endp
 
+				; -----------------------------------------------------------------------------
  00000174			PrintGridRow proc leftChar:ptr byte, rightChar:ptr byte, middleChar:ptr byte, dividerChar:ptr byte, cellWidth:ptr byte
+				; This procedure prints a single row of ascii characters representing our game grid. It prints a single character 
+				; for the left side, the contents of the middle of the grid, then a single character on the right side.
+				; The middle contents are printed four times - one for each cell in a row - and divided by a single character to show
+				; where each column is split.
+				;
+				; Receives:
+				; leftChar: Character printed on the left side of the row
+				; rightChar: Character printed on the not left side
+				; middleChar: Character spanning each cell
+				; dividerChar: Character dividing each cell
+				; cellWidth: Width of each cell
  00000174  55		   *	    push   ebp
  00000175  8B EC	   *	    mov    ebp, esp
  00000177  56			push esi
@@ -347,7 +359,7 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/01/18 22:47:28
  0000017D  8A 06		mov al, [esi]
  0000017F  E8 00000000 E	call WriteChar
 
-				; Middle 
+				; Print middle 
  00000184  B9 00000004		mov ecx, 4
  00000189			L1:
  00000189  51			push ecx
@@ -362,15 +374,13 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/01/18 22:47:28
  00000199			L2:
  00000199  E8 00000000 E	call WriteChar
  0000019E  E2 F9		LOOP L2
-
 				; If we're on the last column, we don't need another divider
  000001A0  59			pop ecx
  000001A1  83 F9 01		cmp ecx, 1
- 000001A4  74 0A		je L1Done
+ 000001A4  76 0A		jbe L1Done
  000001A6  8B 75 14		mov esi, dividerChar
  000001A9  8A 06		mov al, [esi]
  000001AB  E8 00000000 E	call WriteChar
-
  000001B0			L1Done:
  000001B0  E2 D7		loop L1
 
@@ -387,116 +397,136 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/01/18 22:47:28
  000001C5  C2 0014		ret 20
  000001C8			PrintGridRow endp
 
+				; -----------------------------------------------------------------------------
  000001C8			DisplayGrid proc gridAddr:ptr byte
+				; Repeatedly prints one row of the game grid at a time until the whole grid is 
+				; displayed on screen.
+				;
+				; Receives:
+				; gridAddr: The address of the game grid array
+
 				LOCAL rowCount:byte, cellWidth:byte, cellHeight:byte, leftChar:byte, rightChar:byte, middleChar:byte, dividerChar:byte
  000001C8  55		   *	    push   ebp
  000001C9  8B EC	   *	    mov    ebp, esp
  000001CB  83 C4 F8	   *	    add    esp, 0FFFFFFF8h
  000001CE  60			pushad
 
- 000001CF  C6 45 FE 0F		mov cellWidth, 15
- 000001D3  C6 45 FD 05		mov cellHeight, 5
+				; Save default text color
+ 000001CF  B8 00000000		mov eax, 0
+ 000001D4  E8 00000000 E	call GetTextColor
+ 000001D9  50			push eax
 
- 000001D7  C6 45 FF 00		mov rowCount, 0
- 000001DB  8D 05 0000014E R	lea eax, grid
+				; Set grid color
+ 000001DA  B8 00000009		mov eax, 9
+ 000001DF  E8 00000000 E	call SetTextColor
+
+				; Set cell size
+ 000001E4  C6 45 FE 0C		mov cellWidth, 12
+ 000001E8  C6 45 FD 05		mov cellHeight, 5
+
+				; Setup grid matrix indexing
+ 000001EC  C6 45 FF 00		mov rowCount, 0
+ 000001F0  8D 05 0000014E R	lea eax, grid
 
 				; First output top of grid
- 000001E1  C6 45 FC C9		mov leftChar, 201
- 000001E5  C6 45 FB BB		mov rightChar, 187
- 000001E9  C6 45 FA CD		mov middleChar, 205
- 000001ED  C6 45 F9 D1		mov dividerChar, 209
+ 000001F6  C6 45 FC C9		mov leftChar, 201
+ 000001FA  C6 45 FB BB		mov rightChar, 187
+ 000001FE  C6 45 FA CD		mov middleChar, 205
+ 00000202  C6 45 F9 D1		mov dividerChar, 209
 				INVOKE PrintGridRow, ADDR leftChar, ADDR rightChar, ADDR middleChar, ADDR dividerChar, ADDR cellWidth
- 000001F1  8D 45 FE	   *	    lea    eax, byte  ptr ss:[ebp]+0FEh
- 000001F4  50		   *	    push   eax
- 000001F5  8D 45 F9	   *	    lea    eax, byte  ptr ss:[ebp]+0F9h
- 000001F8  50		   *	    push   eax
- 000001F9  8D 45 FA	   *	    lea    eax, byte  ptr ss:[ebp]+0FAh
- 000001FC  50		   *	    push   eax
- 000001FD  8D 45 FB	   *	    lea    eax, byte  ptr ss:[ebp]+0FBh
- 00000200  50		   *	    push   eax
- 00000201  8D 45 FC	   *	    lea    eax, byte  ptr ss:[ebp]+0FCh
- 00000204  50		   *	    push   eax
- 00000205  E8 FFFFFF6A	   *	    call   PrintGridRow
+ 00000206  8D 45 FE	   *	    lea    eax, byte  ptr ss:[ebp]+0FEh
+ 00000209  50		   *	    push   eax
+ 0000020A  8D 45 F9	   *	    lea    eax, byte  ptr ss:[ebp]+0F9h
+ 0000020D  50		   *	    push   eax
+ 0000020E  8D 45 FA	   *	    lea    eax, byte  ptr ss:[ebp]+0FAh
+ 00000211  50		   *	    push   eax
+ 00000212  8D 45 FB	   *	    lea    eax, byte  ptr ss:[ebp]+0FBh
+ 00000215  50		   *	    push   eax
+ 00000216  8D 45 FC	   *	    lea    eax, byte  ptr ss:[ebp]+0FCh
+ 00000219  50		   *	    push   eax
+ 0000021A  E8 FFFFFF55	   *	    call   PrintGridRow
 
 				; Then print middle of grid
- 0000020A  B9 00000004		mov ecx, 4
- 0000020F			L1:
- 0000020F  51			push ecx
+ 0000021F  B9 00000004		mov ecx, 4
+ 00000224			L1:
+ 00000224  51			push ecx
 				; Set ECX to cellHeight
- 00000210  0F B6 4D FD		movzx ecx, cellHeight
+ 00000225  0F B6 4D FD		movzx ecx, cellHeight
 				; Set contents of row
- 00000214  C6 45 FC BA		mov leftChar, 186
- 00000218  C6 45 FB BA		mov rightChar, 186
- 0000021C  C6 45 FA 20		mov middleChar, ' '
- 00000220  C6 45 F9 B3		mov dividerChar, 179
+ 00000229  C6 45 FC BA		mov leftChar, 186
+ 0000022D  C6 45 FB BA		mov rightChar, 186
+ 00000231  C6 45 FA 20		mov middleChar, ' '
+ 00000235  C6 45 F9 B3		mov dividerChar, 179
 				; Print row
- 00000224			L2:
+ 00000239			L2:
 				INVOKE PrintGridRow, ADDR leftChar, ADDR rightChar, ADDR middleChar, ADDR dividerChar, ADDR cellWidth
- 00000224  8D 45 FE	   *	    lea    eax, byte  ptr ss:[ebp]+0FEh
- 00000227  50		   *	    push   eax
- 00000228  8D 45 F9	   *	    lea    eax, byte  ptr ss:[ebp]+0F9h
- 0000022B  50		   *	    push   eax
- 0000022C  8D 45 FA	   *	    lea    eax, byte  ptr ss:[ebp]+0FAh
- 0000022F  50		   *	    push   eax
- 00000230  8D 45 FB	   *	    lea    eax, byte  ptr ss:[ebp]+0FBh
- 00000233  50		   *	    push   eax
- 00000234  8D 45 FC	   *	    lea    eax, byte  ptr ss:[ebp]+0FCh
- 00000237  50		   *	    push   eax
- 00000238  E8 FFFFFF37	   *	    call   PrintGridRow
- 0000023D  E2 E5		LOOP L2
-
+ 00000239  8D 45 FE	   *	    lea    eax, byte  ptr ss:[ebp]+0FEh
+ 0000023C  50		   *	    push   eax
+ 0000023D  8D 45 F9	   *	    lea    eax, byte  ptr ss:[ebp]+0F9h
+ 00000240  50		   *	    push   eax
+ 00000241  8D 45 FA	   *	    lea    eax, byte  ptr ss:[ebp]+0FAh
+ 00000244  50		   *	    push   eax
+ 00000245  8D 45 FB	   *	    lea    eax, byte  ptr ss:[ebp]+0FBh
+ 00000248  50		   *	    push   eax
+ 00000249  8D 45 FC	   *	    lea    eax, byte  ptr ss:[ebp]+0FCh
+ 0000024C  50		   *	    push   eax
+ 0000024D  E8 FFFFFF22	   *	    call   PrintGridRow
+ 00000252  E2 E5		LOOP L2
 				; If we're on the last row, we don't need another divider
- 0000023F  59			pop ecx
- 00000240  83 F9 01		cmp ecx, 1
- 00000243  74 29		je L1Done
- 00000245  C6 45 FC C7		mov leftChar, 199
- 00000249  C6 45 FB B6		mov rightChar, 182
- 0000024D  C6 45 FA C4		mov middleChar, 196
- 00000251  C6 45 F9 C5		mov dividerChar, 197
+ 00000254  59			pop ecx
+ 00000255  83 F9 01		cmp ecx, 1
+ 00000258  76 29		jbe L1Done
+ 0000025A  C6 45 FC C7		mov leftChar, 199
+ 0000025E  C6 45 FB B6		mov rightChar, 182
+ 00000262  C6 45 FA C4		mov middleChar, 196
+ 00000266  C6 45 F9 C5		mov dividerChar, 197
 				INVOKE PrintGridRow, ADDR leftChar, ADDR rightChar, ADDR middleChar, ADDR dividerChar, ADDR cellWidth
- 00000255  8D 45 FE	   *	    lea    eax, byte  ptr ss:[ebp]+0FEh
- 00000258  50		   *	    push   eax
- 00000259  8D 45 F9	   *	    lea    eax, byte  ptr ss:[ebp]+0F9h
- 0000025C  50		   *	    push   eax
- 0000025D  8D 45 FA	   *	    lea    eax, byte  ptr ss:[ebp]+0FAh
- 00000260  50		   *	    push   eax
- 00000261  8D 45 FB	   *	    lea    eax, byte  ptr ss:[ebp]+0FBh
- 00000264  50		   *	    push   eax
- 00000265  8D 45 FC	   *	    lea    eax, byte  ptr ss:[ebp]+0FCh
- 00000268  50		   *	    push   eax
- 00000269  E8 FFFFFF06	   *	    call   PrintGridRow
-
- 0000026E			L1Done:
- 0000026E  E2 9F		loop L1
+ 0000026A  8D 45 FE	   *	    lea    eax, byte  ptr ss:[ebp]+0FEh
+ 0000026D  50		   *	    push   eax
+ 0000026E  8D 45 F9	   *	    lea    eax, byte  ptr ss:[ebp]+0F9h
+ 00000271  50		   *	    push   eax
+ 00000272  8D 45 FA	   *	    lea    eax, byte  ptr ss:[ebp]+0FAh
+ 00000275  50		   *	    push   eax
+ 00000276  8D 45 FB	   *	    lea    eax, byte  ptr ss:[ebp]+0FBh
+ 00000279  50		   *	    push   eax
+ 0000027A  8D 45 FC	   *	    lea    eax, byte  ptr ss:[ebp]+0FCh
+ 0000027D  50		   *	    push   eax
+ 0000027E  E8 FFFFFEF1	   *	    call   PrintGridRow
+ 00000283			L1Done:
+ 00000283  E2 9F		loop L1
 
 				; Print the bottom of the grid
- 00000270  C6 45 FC C8		mov leftChar, 200
- 00000274  C6 45 FB BC		mov rightChar, 188
- 00000278  C6 45 FA CD		mov middleChar, 205
- 0000027C  C6 45 F9 CF		mov dividerChar, 207
+ 00000285  C6 45 FC C8		mov leftChar, 200
+ 00000289  C6 45 FB BC		mov rightChar, 188
+ 0000028D  C6 45 FA CD		mov middleChar, 205
+ 00000291  C6 45 F9 CF		mov dividerChar, 207
 				INVOKE PrintGridRow, ADDR leftChar, ADDR rightChar, ADDR middleChar, ADDR dividerChar, ADDR cellWidth
- 00000280  8D 45 FE	   *	    lea    eax, byte  ptr ss:[ebp]+0FEh
- 00000283  50		   *	    push   eax
- 00000284  8D 45 F9	   *	    lea    eax, byte  ptr ss:[ebp]+0F9h
- 00000287  50		   *	    push   eax
- 00000288  8D 45 FA	   *	    lea    eax, byte  ptr ss:[ebp]+0FAh
- 0000028B  50		   *	    push   eax
- 0000028C  8D 45 FB	   *	    lea    eax, byte  ptr ss:[ebp]+0FBh
- 0000028F  50		   *	    push   eax
- 00000290  8D 45 FC	   *	    lea    eax, byte  ptr ss:[ebp]+0FCh
- 00000293  50		   *	    push   eax
- 00000294  E8 FFFFFEDB	   *	    call   PrintGridRow
+ 00000295  8D 45 FE	   *	    lea    eax, byte  ptr ss:[ebp]+0FEh
+ 00000298  50		   *	    push   eax
+ 00000299  8D 45 F9	   *	    lea    eax, byte  ptr ss:[ebp]+0F9h
+ 0000029C  50		   *	    push   eax
+ 0000029D  8D 45 FA	   *	    lea    eax, byte  ptr ss:[ebp]+0FAh
+ 000002A0  50		   *	    push   eax
+ 000002A1  8D 45 FB	   *	    lea    eax, byte  ptr ss:[ebp]+0FBh
+ 000002A4  50		   *	    push   eax
+ 000002A5  8D 45 FC	   *	    lea    eax, byte  ptr ss:[ebp]+0FCh
+ 000002A8  50		   *	    push   eax
+ 000002A9  E8 FFFFFEC6	   *	    call   PrintGridRow
 
- 00000299  E8 00000000 E	call CRLF
+ 000002AE  E8 00000000 E	call CRLF
 
- 0000029E  61			popad
- 0000029F  C9		   *	    leave  
- 000002A0  C2 0004		RET 4
- 000002A3			DisplayGrid endp
-Final.asm(311) : warning A6004:procedure argument or local not referenced : gridAddr
+				; Reset text color
+ 000002B3  58			pop eax
+ 000002B4  E8 00000000 E	call SetTextColor
+
+ 000002B9  61			popad
+ 000002BA  C9		   *	    leave  
+ 000002BB  C2 0004		RET 4
+ 000002BE			DisplayGrid endp
+Final.asm(341) : warning A6004:procedure argument or local not referenced : gridAddr
 
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/01/18 22:47:28
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 06:00:54
 : Final.as						     Symbols 2 - 1
 
 
@@ -591,7 +621,7 @@ Segments and Groups:
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
 _DATA  . . . . . . . . . . . . .	32 Bit	 00000177 Para	  Public  'DATA'	
-_TEXT  . . . . . . . . . . . . .	32 Bit	 000002A3 Para	  Public  'CODE'	
+_TEXT  . . . . . . . . . . . . .	32 Bit	 000002BE Para	  Public  'CODE'	
 
 
 Procedures, parameters, and locals:
@@ -608,7 +638,7 @@ CreateFileA  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External
 CreateOutputFile . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Crlf . . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 Delay  . . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
-DisplayGrid  . . . . . . . . . .	P Near	 000001C8 _TEXT	Length= 000000DB Public STDCALL
+DisplayGrid  . . . . . . . . . .	P Near	 000001C8 _TEXT	Length= 000000F6 Public STDCALL
   gridAddr . . . . . . . . . . .	DWord	 bp + 00000008
   rowCount . . . . . . . . . . .	Byte	 bp - 00000001
   cellWidth  . . . . . . . . . .	Byte	 bp - 00000002
@@ -617,9 +647,9 @@ DisplayGrid  . . . . . . . . . .	P Near	 000001C8 _TEXT	Length= 000000DB Public 
   rightChar  . . . . . . . . . .	Byte	 bp - 00000005
   middleChar . . . . . . . . . .	Byte	 bp - 00000006
   dividerChar  . . . . . . . . .	Byte	 bp - 00000007
-  L1 . . . . . . . . . . . . . .	L Near	 0000020F _TEXT	
-  L2 . . . . . . . . . . . . . .	L Near	 00000224 _TEXT	
-  L1Done . . . . . . . . . . . .	L Near	 0000026E _TEXT	
+  L1 . . . . . . . . . . . . . .	L Near	 00000224 _TEXT	
+  L2 . . . . . . . . . . . . . .	L Near	 00000239 _TEXT	
+  L1Done . . . . . . . . . . . .	L Near	 00000283 _TEXT	
 DumpMem  . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 DumpRegs . . . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL
 ExitProcess  . . . . . . . . . .	P Near	 00000000 FLAT	Length= 00000000 External STDCALL

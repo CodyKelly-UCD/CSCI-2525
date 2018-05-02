@@ -202,7 +202,19 @@ pop eax
 ret 4
 ChooseFirstPlayer endp
 
+; -----------------------------------------------------------------------------
 PrintGridRow proc leftChar:ptr byte, rightChar:ptr byte, middleChar:ptr byte, dividerChar:ptr byte, cellWidth:ptr byte
+; This procedure prints a single row of ascii characters representing our game grid. It prints a single character 
+; for the left side, the contents of the middle of the grid, then a single character on the right side.
+; The middle contents are printed four times - one for each cell in a row - and divided by a single character to show
+; where each column is split.
+;
+; Receives:
+; leftChar: Character printed on the left side of the row
+; rightChar: Character printed on the not left side
+; middleChar: Character spanning each cell
+; dividerChar: Character dividing each cell
+; cellWidth: Width of each cell
 push esi
 push eax
 push ecx
@@ -212,7 +224,7 @@ mov esi, leftChar
 mov al, [esi]
 call WriteChar
 
-; Middle 
+; Print middle 
 mov ecx, 4
 L1:
 push ecx
@@ -227,15 +239,13 @@ mov al, [esi]
 L2:
 call WriteChar
 LOOP L2
-
 ; If we're on the last column, we don't need another divider
 pop ecx
 cmp ecx, 1
-je L1Done
+jbe L1Done
 mov esi, dividerChar
 mov al, [esi]
 call WriteChar
-
 L1Done:
 loop L1
 
@@ -251,13 +261,31 @@ pop esi
 ret 20
 PrintGridRow endp
 
+; -----------------------------------------------------------------------------
 DisplayGrid proc gridAddr:ptr byte
+; Repeatedly prints one row of the game grid at a time until the whole grid is 
+; displayed on screen.
+;
+; Receives:
+; gridAddr: The address of the game grid array
+
 LOCAL rowCount:byte, cellWidth:byte, cellHeight:byte, leftChar:byte, rightChar:byte, middleChar:byte, dividerChar:byte
 pushad
 
-mov cellWidth, 15
+; Save default text color
+mov eax, 0
+call GetTextColor
+push eax
+
+; Set grid color
+mov eax, 9
+call SetTextColor
+
+; Set cell size
+mov cellWidth, 12
 mov cellHeight, 5
 
+; Setup grid matrix indexing
 mov rowCount, 0
 lea eax, grid
 
@@ -283,17 +311,15 @@ mov dividerChar, 179
 L2:
 INVOKE PrintGridRow, ADDR leftChar, ADDR rightChar, ADDR middleChar, ADDR dividerChar, ADDR cellWidth
 LOOP L2
-
 ; If we're on the last row, we don't need another divider
 pop ecx
 cmp ecx, 1
-je L1Done
+jbe L1Done
 mov leftChar, 199
 mov rightChar, 182
 mov middleChar, 196
 mov dividerChar, 197
 INVOKE PrintGridRow, ADDR leftChar, ADDR rightChar, ADDR middleChar, ADDR dividerChar, ADDR cellWidth
-
 L1Done:
 loop L1
 
@@ -305,6 +331,10 @@ mov dividerChar, 207
 INVOKE PrintGridRow, ADDR leftChar, ADDR rightChar, ADDR middleChar, ADDR dividerChar, ADDR cellWidth
 
 call CRLF
+
+; Reset text color
+pop eax
+call SetTextColor
 
 popad
 RET 4
