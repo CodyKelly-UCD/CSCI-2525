@@ -10,12 +10,12 @@ DisplayGrid proto gridAddr:ptr byte
 PrintGridRow proto leftChar:ptr byte, rightChar:ptr byte, middleChar:ptr byte, dividerChar:ptr byte, cellWidth:ptr byte
 
 .data
-mainMenuPrompt byte "Welcome! Please select an option:", 0Ah, 0Dh, "1) Play Connect Three", 0Ah, 0Dh, "2) Show stats", 0Ah, 0Dh, "3) Exit", 0
-gameModePrompt byte "Welcome to Connect Three! Please select a game mode:", 0Ah, 0Dh, "1) Human vs. human", 0Ah, 0Dh, "2) Human vs. computer", 0Ah, 0Dh, "3) Computer vs. computer", 0
+mainMenuPrompt byte "Welcome to Connect Three! Please select an option:", 0Ah, 0Dh, "1) Play new game", 0Ah, 0Dh, "2) Show stats", 0Ah, 0Dh, "3) Exit", 0
+gameModePrompt byte "Please select a game mode:", 0Ah, 0Dh, "1) Human vs. human", 0Ah, 0Dh, "2) Human vs. computer", 0Ah, 0Dh, "3) Computer vs. computer", 0
 selectColumnPrompt byte "Please select a column to drop your piece (1 - 5): "
 invalidChoicePrompt byte "You have entered an invalid choice. Please enter a number from 1 to ",0
-maxMenuOption dword 3
-userChoice dword 1
+maxMenuOption byte 3
+userChoice byte 1
 playerTypes byte 2 dup(0)
 currentPlayer byte 0
 grid    byte 4 dup(0)
@@ -63,7 +63,7 @@ exit
 main ENDP
 
 ; -----------------------------------------------------------------------------
-Menu proc maxOption:dword, prompt:ptr byte, choice:ptr dword, errorMsg:ptr byte
+Menu proc maxOption:ptr byte, prompt:ptr byte, choice:ptr byte, errorMsg:ptr byte
 ; Displays the prompt given, gets a selection from the user, checks if the
 ; selection is more than or equal to one and less than or equal to maxOption,
 ; and stores the result into the memory at choice.
@@ -278,12 +278,12 @@ call GetTextColor
 push eax
 
 ; Set grid color
-mov eax, 9
+mov eax, 14
 call SetTextColor
 
 ; Set cell size
-mov cellWidth, 12
-mov cellHeight, 5
+mov cellWidth, 12    ; Optimal at 12
+mov cellHeight, 5   ; Optimal at 5
 
 ; Setup grid matrix indexing
 mov rowCount, 0
@@ -339,5 +339,7 @@ call SetTextColor
 popad
 RET 4
 DisplayGrid endp
+
+GetPlayMove proc playerType:ptr byte, choice:ptr byte 
 
 END main

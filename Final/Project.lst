@@ -1,4 +1,4 @@
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 06:00:54
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 12:25:14
 : Final.as						     Page 1 - 1
 
 
@@ -31,24 +31,7 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 06:00:54
 				PrintGridRow proto leftChar:ptr byte, rightChar:ptr byte, middleChar:ptr byte, dividerChar:ptr byte, cellWidth:ptr byte
 
  00000000			.data
- 00000000 57 65 6C 63 6F	mainMenuPrompt byte "Welcome! Please select an option:", 0Ah, 0Dh, "1) Play Connect Three", 0Ah, 0Dh, "2) Show stats", 0Ah, 0Dh, "3) Exit", 0
-	   6D 65 21 20 50
-	   6C 65 61 73 65
-	   20 73 65 6C 65
-	   63 74 20 61 6E
-	   20 6F 70 74 69
-	   6F 6E 3A 0A 0D
-	   31 29 20 50 6C
-	   61 79 20 43 6F
-	   6E 6E 65 63 74
-	   20 54 68 72 65
-	   65 0A 0D 32 29
-	   20 53 68 6F 77
-	   20 73 74 61 74
-	   73 0A 0D 33 29
-	   20 45 78 69 74
-	   00
- 00000051 57 65 6C 63 6F	gameModePrompt byte "Welcome to Connect Three! Please select a game mode:", 0Ah, 0Dh, "1) Human vs. human", 0Ah, 0Dh, "2) Human vs. computer", 0Ah, 0Dh, "3) Computer vs. computer", 0
+ 00000000 57 65 6C 63 6F	mainMenuPrompt byte "Welcome to Connect Three! Please select an option:", 0Ah, 0Dh, "1) Play new game", 0Ah, 0Dh, "2) Show stats", 0Ah, 0Dh, "3) Exit", 0
 	   6D 65 20 74 6F
 	   20 43 6F 6E 6E
 	   65 63 74 20 54
@@ -56,24 +39,38 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 06:00:54
 	   20 50 6C 65 61
 	   73 65 20 73 65
 	   6C 65 63 74 20
-	   61 20 67 61 6D
-	   65 20 6D 6F 64
-	   65 3A 0A 0D 31
-	   29 20 48 75 6D
-	   61 6E 20 76 73
-	   2E 20 68 75 6D
-	   61 6E 0A 0D 32
-	   29 20 48 75 6D
-	   61 6E 20 76 73
+	   61 6E 20 6F 70
+	   74 69 6F 6E 3A
+	   0A 0D 31 29 20
+	   50 6C 61 79 20
+	   6E 65 77 20 67
+	   61 6D 65 0A 0D
+	   32 29 20 53 68
+	   6F 77 20 73 74
+	   61 74 73 0A 0D
+	   33 29 20 45 78
+	   69 74 00
+ 0000005D 50 6C 65 61 73	gameModePrompt byte "Please select a game mode:", 0Ah, 0Dh, "1) Human vs. human", 0Ah, 0Dh, "2) Human vs. computer", 0Ah, 0Dh, "3) Computer vs. computer", 0
+	   65 20 73 65 6C
+	   65 63 74 20 61
+	   20 67 61 6D 65
+	   20 6D 6F 64 65
+	   3A 0A 0D 31 29
+	   20 48 75 6D 61
+	   6E 20 76 73 2E
+	   20 68 75 6D 61
+	   6E 0A 0D 32 29
+	   20 48 75 6D 61
+	   6E 20 76 73 2E
+	   20 63 6F 6D 70
+	   75 74 65 72 0A
+	   0D 33 29 20 43
+	   6F 6D 70 75 74
+	   65 72 20 76 73
 	   2E 20 63 6F 6D
 	   70 75 74 65 72
-	   0A 0D 33 29 20
-	   43 6F 6D 70 75
-	   74 65 72 20 76
-	   73 2E 20 63 6F
-	   6D 70 75 74 65
-	   72 00
- 000000CB 50 6C 65 61 73	selectColumnPrompt byte "Please select a column to drop your piece (1 - 5): "
+	   00
+ 000000BD 50 6C 65 61 73	selectColumnPrompt byte "Please select a column to drop your piece (1 - 5): "
 	   65 20 73 65 6C
 	   65 63 74 20 61
 	   20 63 6F 6C 75
@@ -84,7 +81,7 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 06:00:54
 	   65 20 28 31 20
 	   2D 20 35 29 3A
 	   20
- 000000FE 59 6F 75 20 68	invalidChoicePrompt byte "You have entered an invalid choice. Please enter a number from 1 to ",0
+ 000000F0 59 6F 75 20 68	invalidChoicePrompt byte "You have entered an invalid choice. Please enter a number from 1 to ",0
 	   61 76 65 20 65
 	   6E 74 65 72 65
 	   64 20 61 6E 20
@@ -98,27 +95,27 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 06:00:54
 	   65 72 20 66 72
 	   6F 6D 20 31 20
 	   74 6F 20 00
- 00000143 00000003		maxMenuOption dword 3
- 00000147 00000001		userChoice dword 1
- 0000014B  00000002 [		playerTypes byte 2 dup(0)
+ 00000135 00000003		maxMenuOption dword 3
+ 00000139 00000001		userChoice dword 1
+ 0000013D  00000002 [		playerTypes byte 2 dup(0)
 	    00
 	   ]
- 0000014D 00			currentPlayer byte 0
- 0000014E  00000004 [		grid    byte 4 dup(0)
+ 0000013F 00			currentPlayer byte 0
+ 00000140  00000004 [		grid    byte 4 dup(0)
 	    00
 	   ]
- 00000152 = 00000004		gridLength = ($ - grid)
- 00000152  00000004 [		        byte 4 dup(0)
+ 00000144 = 00000004		gridLength = ($ - grid)
+ 00000144  00000004 [		        byte 4 dup(0)
 	    00
 	   ]
- 00000156  00000004 [		        byte 4 dup(0)
+ 00000148  00000004 [		        byte 4 dup(0)
 	    00
 	   ]
- 0000015A  00000004 [		        byte 4 dup(0)
+ 0000014C  00000004 [		        byte 4 dup(0)
 	    00
 	   ]
 
- 0000015E 10 59 6F 75 27	s1 byte, "You've selected option ", 0
+ 00000150 10 59 6F 75 27	s1 byte, "You've selected option ", 0
 	   76 65 20 73 65
 	   6C 65 63 74 65
 	   64 20 6F 70 74
@@ -134,26 +131,26 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 06:00:54
 
  0000000A			opt1:
 				; Play Connect Three
- 0000000A  83 3D 00000147 R	cmp userChoice, 1
+ 0000000A  83 3D 00000139 R	cmp userChoice, 1
 	   01
  00000011  75 20		jne opt2
 				;INVOKE GetGameMode, ADDR gameModePrompt, ADDR invalidChoicePrompt, ADDR playerTypes
 				INVOKE ChooseFirstPlayer, ADDR currentPlayer
- 00000013  68 0000014D R   *	    push   OFFSET currentPlayer
+ 00000013  68 0000013F R   *	    push   OFFSET currentPlayer
  00000018  E8 0000013D	   *	    call   ChooseFirstPlayer
  0000001D  E8 00000000 E	call ClrScr
 				INVOKE DisplayGrid, ADDR grid
- 00000022  68 0000014E R   *	    push   OFFSET grid
+ 00000022  68 00000140 R   *	    push   OFFSET grid
  00000027  E8 0000019C	   *	    call   DisplayGrid
  0000002C  E8 00000000 E	call waitMsg
  00000031  EB D2		jmp start
 
  00000033			opt2:
 				; Show stats
- 00000033  83 3D 00000147 R	cmp userChoice, 2
+ 00000033  83 3D 00000139 R	cmp userChoice, 2
 	   02
  0000003A  75 25		jne done
- 0000003C  BA 0000015E R	mov edx, offset s1
+ 0000003C  BA 00000150 R	mov edx, offset s1
  00000041  B8 00000003		mov eax, 3
  00000046  E8 00000000 E	call ClrScr
  0000004B  E8 00000000 E	call WriteString
@@ -417,16 +414,16 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 06:00:54
  000001D9  50			push eax
 
 				; Set grid color
- 000001DA  B8 00000009		mov eax, 9
+ 000001DA  B8 0000000E		mov eax, 14
  000001DF  E8 00000000 E	call SetTextColor
 
 				; Set cell size
- 000001E4  C6 45 FE 0C		mov cellWidth, 12
- 000001E8  C6 45 FD 05		mov cellHeight, 5
+ 000001E4  C6 45 FE 0C		mov cellWidth, 12    ; Optimal at 12
+ 000001E8  C6 45 FD 05		mov cellHeight, 5   ; Optimal at 5
 
 				; Setup grid matrix indexing
  000001EC  C6 45 FF 00		mov rowCount, 0
- 000001F0  8D 05 0000014E R	lea eax, grid
+ 000001F0  8D 05 00000140 R	lea eax, grid
 
 				; First output top of grid
  000001F6  C6 45 FC C9		mov leftChar, 201
@@ -525,8 +522,10 @@ Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 06:00:54
  000002BE			DisplayGrid endp
 Final.asm(341) : warning A6004:procedure argument or local not referenced : gridAddr
 
+
+
 				END main
-Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 06:00:54
+Microsoft (R) Macro Assembler Version 14.00.24210.0	    05/02/18 12:25:14
 : Final.as						     Symbols 2 - 1
 
 
@@ -620,7 +619,7 @@ Segments and Groups:
 
 FLAT . . . . . . . . . . . . . .	GROUP
 STACK  . . . . . . . . . . . . .	32 Bit	 00001000 Para	  Stack	  'STACK'	 
-_DATA  . . . . . . . . . . . . .	32 Bit	 00000177 Para	  Public  'DATA'	
+_DATA  . . . . . . . . . . . . .	32 Bit	 00000169 Para	  Public  'DATA'	
 _TEXT  . . . . . . . . . . . . .	32 Bit	 000002BE Para	  Public  'CODE'	
 
 
@@ -999,15 +998,15 @@ WriteConsole . . . . . . . . . .	Text   	 WriteConsoleA
 black  . . . . . . . . . . . . .	Number	 00000000h   
 blue . . . . . . . . . . . . . .	Number	 00000001h   
 brown  . . . . . . . . . . . . .	Number	 00000006h   
-currentPlayer  . . . . . . . . .	Byte	 0000014D _DATA	
+currentPlayer  . . . . . . . . .	Byte	 0000013F _DATA	
 cyan . . . . . . . . . . . . . .	Number	 00000003h   
 exit . . . . . . . . . . . . . .	Text   	 INVOKE ExitProcess,0
-gameModePrompt . . . . . . . . .	Byte	 00000051 _DATA	
+gameModePrompt . . . . . . . . .	Byte	 0000005D _DATA	
 gray . . . . . . . . . . . . . .	Number	 00000008h   
 green  . . . . . . . . . . . . .	Number	 00000002h   
 gridLength . . . . . . . . . . .	Number	 00000004h   
-grid . . . . . . . . . . . . . .	Byte	 0000014E _DATA	
-invalidChoicePrompt  . . . . . .	Byte	 000000FE _DATA	
+grid . . . . . . . . . . . . . .	Byte	 00000140 _DATA	
+invalidChoicePrompt  . . . . . .	Byte	 000000F0 _DATA	
 lightBlue  . . . . . . . . . . .	Number	 00000009h   
 lightCyan  . . . . . . . . . . .	Number	 0000000Bh   
 lightGray  . . . . . . . . . . .	Number	 00000007h   
@@ -1016,12 +1015,12 @@ lightMagenta . . . . . . . . . .	Number	 0000000Dh
 lightRed . . . . . . . . . . . .	Number	 0000000Ch   
 magenta  . . . . . . . . . . . .	Number	 00000005h   
 mainMenuPrompt . . . . . . . . .	Byte	 00000000 _DATA	
-maxMenuOption  . . . . . . . . .	DWord	 00000143 _DATA	
-playerTypes  . . . . . . . . . .	Byte	 0000014B _DATA	
+maxMenuOption  . . . . . . . . .	DWord	 00000135 _DATA	
+playerTypes  . . . . . . . . . .	Byte	 0000013D _DATA	
 red  . . . . . . . . . . . . . .	Number	 00000004h   
-s1 . . . . . . . . . . . . . . .	Byte	 0000015E _DATA	
-selectColumnPrompt . . . . . . .	Byte	 000000CB _DATA	
-userChoice . . . . . . . . . . .	DWord	 00000147 _DATA	
+s1 . . . . . . . . . . . . . . .	Byte	 00000150 _DATA	
+selectColumnPrompt . . . . . . .	Byte	 000000BD _DATA	
+userChoice . . . . . . . . . . .	DWord	 00000139 _DATA	
 white  . . . . . . . . . . . . .	Number	 0000000Fh   
 wsprintf . . . . . . . . . . . .	Text   	 wsprintfA
 yellow . . . . . . . . . . . . .	Number	 0000000Eh   
